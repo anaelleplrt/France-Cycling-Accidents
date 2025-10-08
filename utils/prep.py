@@ -14,9 +14,9 @@ from datetime import datetime
 
 GRAVITY_DICT = {
     1: 'Unharmed',
-    2: 'Minor injury',
+    2: 'Killed',          
     3: 'Hospitalized',
-    4: 'Killed'
+    4: 'Minor injury'     
 }
 
 LIGHTING_DICT = {
@@ -170,7 +170,7 @@ def clean_data(df_raw):
     df = df[df['grav'].notna()]
     
     # 3. Remove rows with invalid years (outside expected range)
-    df = df[(df['an'] >= 2005) & (df['an'] <= 2022)]
+    df = df[(df['an'] >= 2005) & (df['an'] <= 2023)]
     
     # 4. Remove rows without valid dates
     df = df[df['date'].notna()]
@@ -236,8 +236,8 @@ def clean_data(df_raw):
     )
     
     # Binary flags for severity
-    df['is_severe'] = df['grav'].isin([3, 4])  # Hospitalized or killed
-    df['is_fatal'] = df['grav'] == 4  # Killed
+    df['is_severe'] = df['grav'].isin([2, 3])  # Hospitalized or killed
+    df['is_fatal'] = df['grav'] == 2  # Killed
     
     # Dangerous conditions flag (night OR bad weather OR slippery surface)
     df['dangerous_conditions'] = (

@@ -1,5 +1,5 @@
 """
-Cycling Safety in France (2005-2022)
+Cycling Safety in France (2005-2023)
 Interactive dashboard analyzing bicycle accidents data from BAAC/ONISR.
 
 Author: Anaëlle Pollart
@@ -218,7 +218,7 @@ else:
 # Header with title and subtitle
 st.markdown("""
     <h1 style='font-size: 3.5rem; color: #1f77b4; margin-bottom: 0;'>
-        🚴 Cycling Safety in France (2005-2022)
+        🚴 Cycling Safety in France (2005-2023)
     </h1>
     <p style='font-size: 1.5rem; color: #555; margin-top: 0.5rem; margin-bottom: 2rem;'>
         Understanding bicycle accident patterns to improve cyclist safety

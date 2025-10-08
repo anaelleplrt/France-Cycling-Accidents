@@ -1,13 +1,12 @@
 """
-Data Quality section for the cycling safety dashboard.
-Documents all data cleaning steps, missing values, transformations, and limitations.
+Data quality section for the cycling accidents dashboard.
+Documents data preparation steps and validates data quality.
 """
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from utils.prep import get_cleaning_summary, get_missing_values_report
 
 
 def render(df_raw, df_clean):
@@ -16,212 +15,88 @@ def render(df_raw, df_clean):
     
     Args:
         df_raw (pd.DataFrame): Original raw dataset
-        df_clean (pd.DataFrame): Cleaned dataset
+        df_clean (pd.DataFrame): Cleaned and transformed dataset
     """
     
-    st.markdown("## 🔍 Data Quality & Cleaning Process")
+    st.markdown("## 🔍 Data Quality & Preparation")
     
     st.markdown("""
-    This section provides **complete transparency** about how we cleaned and transformed 
-    the raw data. Understanding these steps is essential before interpreting any results.
+    This section documents the data preparation process and validates the quality of the final dataset.
+    We performed systematic cleaning, transformation, and validation to ensure reliable analysis.
     """)
-    
-    st.info("""
-    **💡 Key Point:** Each row represents **one person involved** in a cycling accident, 
-    not one accident. A single accident may have multiple rows if several cyclists or 
-    passengers were involved (e.g., adult + child in bike seat).
-    """)
-
-        # ========================================================================
-    # 0. COLUMN DESCRIPTIONS
-    # ========================================================================
-    
-    st.markdown("### 📋 Dataset Column Descriptions")
-    
-    st.markdown("""
-    Below is a comprehensive list of all columns in the cleaned dataset to help you 
-    understand the available variables:
-    """)
-    
-    with st.expander("📖 View All Column Descriptions", expanded=False):
-        
-        col_desc = pd.DataFrame({
-            'Column': [
-                'date', 'an', 'mois', 'jour', 'hrmn', 'dep', 'com', 'lat', 'long',
-                'agg', 'int', 'col', 'lum', 'atm', 'catr', 'circ', 'prof', 'plan',
-                'surf', 'infra', 'situ', 'grav', 'sexe', 'age', 'trajet', 'secuexist',
-                'equipement', 'obs', 'obsm', 'choc', 'manv', 'typevehicules',
-                'manoeuvehicules', 'numVehicules'
-            ],
-            'Description': [
-                'Date of accident (DD/MM/YYYY)',
-                'Year of accident',
-                'Month of accident',
-                'Day of accident',
-                'Time of accident (HH:MM)',
-                'Department code (01-95, 2A, 2B)',
-                'Municipality code',
-                'Latitude (GPS coordinate)',
-                'Longitude (GPS coordinate)',
-                'Agglomeration (1: outside, 2: inside)',
-                'Intersection type (1-9)',
-                'Collision type (1-7)',
-                'Lighting conditions (1-5)',
-                'Weather conditions (1-9)',
-                'Road category (1-9)',
-                'Traffic circulation (1-4)',
-                'Road profile (1-4)',
-                'Road layout (1-4)',
-                'Surface condition (1-9)',
-                'Cycling infrastructure (0-4)',
-                'Accident situation (1-8)',
-                'Severity/Gravity (1-4)',
-                'Gender (1: male, 2: female)',
-                'Age of victim',
-                'Trip purpose (0-9)',
-                'Safety equipment existence (1-2)',
-                'Safety equipment details',
-                'Fixed obstacle hit (0-16)',
-                'Mobile obstacle hit (0-9)',
-                'Type of impact (0-9)',
-                'Maneuver before accident (0-24)',
-                'Types of other vehicles involved',
-                'Maneuvers of other vehicles',
-                'Number of other vehicles involved'
-            ],
-            'Type': [
-                'String', 'Integer', 'String', 'String', 'String', 'String', 'String', 'Float', 'Float',
-                'Integer', 'Integer', 'Float', 'Integer', 'Float', 'Integer', 'Float', 'Float', 'Float',
-                'Float', 'Float', 'Float', 'Integer', 'Integer', 'Float', 'Float', 'Integer',
-                'String', 'Float', 'Float', 'Float', 'Float', 'String',
-                'String', 'Float'
-            ]
-        })
-        
-        st.dataframe(col_desc, use_container_width=True, hide_index=True, height=400)
-        
-        st.info("""
-        **Note:** Decoded versions of categorical variables (e.g., `gravity`, `lighting`, `weather`) 
-        are also available with human-readable labels. See the "Categorical Variable Decoding" section below.
-        """)
     
     # ========================================================================
-    # CLEANING OVERVIEW
+    # STEP 1: DATA SOURCE
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("## 📊 Cleaning Overview")
+    st.markdown("## 📥 Step 1: Data Source")
     
-    summary = get_cleaning_summary(df_raw, df_clean)
+    st.markdown("""
+    **Dataset**: French Road Accidents Database (Base BAAC)  
+    **Source**: Observatoire National Interministériel de la Sécurité Routière (ONISR)  
+    **Period**: 2005-2022 (18 years)  
+    **Focus**: Cycling accidents only (extracted from full accident database)
     
-    col1, col2, col3, col4 = st.columns(4)
+    The BAAC database records all injury accidents on public roads in France, documented by police forces.
+    """)
+    
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.metric(
-            label="📥 Original Rows",
-            value=f"{summary['original_rows']:,}"
+            label="📊 Raw Dataset Size",
+            value=f"{len(df_raw):,} records",
+            help="Number of rows in the original dataset"
         )
     
     with col2:
         st.metric(
-            label="📥 Original Columns",
-            value=summary['original_cols']
+            label="📋 Original Columns",
+            value=f"{len(df_raw.columns)} columns",
+            help="Number of variables in raw data"
         )
     
     with col3:
         st.metric(
-            label="✅ Final Rows",
-            value=f"{summary['cleaned_rows']:,}",
-            delta=f"-{summary['rows_removed']:,}" if summary['rows_removed'] > 0 else "No change"
+            label="📅 Time Span",
+            value="18 years",
+            help="2005-2023"
         )
     
-    with col4:
-        st.metric(
-            label="✅ Final Columns",
-            value=summary['cleaned_cols'],
-            delta=f"+{summary['cleaned_cols'] - summary['original_cols'] + summary['cols_removed']}"
-        )
     
     # ========================================================================
-    # STEP 1: COLUMNS REMOVED
+    # STEP 2: COLUMNS REMOVED
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("## 🗑️ Step 1: Columns Removed")
+    st.markdown("## 🗑️ Step 2: Unnecessary Columns Removed")
     
-    st.markdown(f"""
-    We removed **{summary['cols_removed']} technical or incomplete columns** that were not useful for analysis:
+    st.markdown("""
+    We removed **6 technical columns** that aren't needed for analysis:
+    - `Num_Acc`, `id_vehicule`, `Num_Veh` (internal IDs)
+    - `place` (seat position - too granular)
+    - `An_nais` (birth year - we use calculated age instead)
+    - `an` (duplicate of `year`)
     """)
     
-    removed_cols = pd.DataFrame({
-        'Column Name': ['Num_Acc', 'vehiculeid', 'lartpc', 'larrout', 'nbv', '_infos_commune.code_epci'],
-        'Reason for Removal': [
-            '🔢 Technical accident ID - not needed for analysis',
-            '🔢 Technical vehicle ID - not needed for analysis',
-            '📏 Central reservation width - too specific, 70%+ missing',
-            '📏 Road width - 60%+ missing, not critical',
-            '🚗 Number of lanes - inconsistent format',
-            '🏛️ Municipality code - 80%+ incomplete'
+    removed_cols = ['Num_Acc', 'id_vehicule', 'Num_Veh', 'place', 'An_nais', 'an']
+    removed_df = pd.DataFrame({
+        'Removed Column': removed_cols,
+        'Reason': [
+            'Accident identifier (not needed)',
+            'Vehicle identifier (not needed)',
+            'Vehicle number (not needed)',
+            'Seat position (too detailed)',
+            'Birth year (use age instead)',
+            'Year (duplicate of "year")'
         ]
     })
     
-    st.dataframe(removed_cols, use_container_width=True, hide_index=True)
+    st.dataframe(removed_df, use_container_width=True, hide_index=True)
     
     # ========================================================================
-    # STEP 2: ROWS REMOVED
-    # ========================================================================
-    
-    st.markdown("---")
-    st.markdown("## 🧹 Step 2: Invalid Rows Removed")
-    
-    rows_removed = summary['rows_removed']
-    removal_pct = (rows_removed / summary['original_rows']) * 100
-    
-    if rows_removed > 0:
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.metric(
-                label="Rows Removed",
-                value=f"{rows_removed:,}",
-                delta=f"-{removal_pct:.2f}%",
-                delta_color="inverse"
-            )
-            
-            st.markdown(f"""
-            **Why remove rows?**
-            
-            These {rows_removed:,} rows had critical missing 
-            or invalid data that would compromise 
-            analysis quality.
-            """)
-        
-        with col2:
-            st.markdown("**Removal criteria applied:**")
-            
-            removal_reasons = pd.DataFrame({
-                'Criterion': [
-                    '❌ Missing year',
-                    '❌ Missing severity level',
-                    '❌ Invalid year (outside 2005-2023)',
-                    '❌ Missing date',
-                    '❌ Invalid age (<0 or >120)'
-                ],
-                'Why This Matters': [
-                    'Cannot analyze trends without temporal data',
-                    'Severity is our key outcome variable',
-                    'Years outside range are data errors',
-                    'Date required for all temporal analysis',
-                    'Unrealistic ages indicate data quality issues'
-                ]
-            })
-            
-            st.dataframe(removal_reasons, use_container_width=True, hide_index=True)
-    else:
-        st.success("✅ No rows were removed - all records passed validation!")
-    
-    # ========================================================================
-    # STEP 3: COLUMNS ADDED
+    # STEP 3: NEW COLUMNS ADDED
     # ========================================================================
     
     st.markdown("---")
@@ -234,32 +109,31 @@ def render(df_raw, df_clean):
     - **7 calculated** (derived new analytical features)
     """)
     
-    # Summary metrics
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.metric(
-            label="📝 Decoded Variables",
+            label="🔄 Transformed (Decoded)",
             value="11 columns",
-            help="Human-readable versions of numeric codes"
+            help="Replaced encoded columns with readable labels"
         )
     
     with col2:
         st.metric(
-            label="🕐 Temporal Variables",
+            label="📅 Temporal Features",
             value="7 columns",
-            help="Date/time components for analysis"
+            help="Time-based variables extracted from dates"
         )
     
     with col3:
         st.metric(
-            label="🔧 Calculated Features",
+            label="🧮 Calculated Features",
             value="7 columns",
-            help="Derived variables for insights"
+            help="Derived analytical variables"
         )
     
-    # Detailed tabs
-    tab1, tab2, tab3 = st.tabs(["📝 Decoded Variables", "🕐 Temporal Variables", "🔧 Calculated Features"])
+    # Tabs for different column types
+    tab1, tab2, tab3 = st.tabs(["🔄 Decoded Variables", "📅 Temporal Variables", "🧮 Calculated Features"])
     
     with tab1:
         st.markdown("""
@@ -269,21 +143,22 @@ def render(df_raw, df_clean):
         We **replaced** these encoded columns with **human-readable labels** (e.g., "Daylight", "Twilight") 
         to make the data intuitive.
         
-        ✅ **Transformation:** `grav` (1,2,3,4) → `gravity` ("Unharmed", "Minor injury", "Hospitalized", "Killed")
+        ✅ **Transformation:** `grav` (1,2,3,4) → `gravity` ("Unharmed", "Killed", "Hospitalized", "Minor injury")
         """)
         
         decoded_cols = pd.DataFrame({
-            'New Column': [
+            'Transformed Column': [
                 'gravity', 'lighting', 'weather', 'agglomeration', 'intersection_type',
-                'road_category', 'surface_condition', 'infrastructure', 'gender', 
-                'trip_purpose', 'collision_type'
+                'road_category', 'surface_condition', 'infrastructure', 'gender',
+                'trip_purpose', 'user_category'
             ],
-            'Original Column': [
-                'grav', 'lum', 'atm', 'agg', 'int', 'catr', 'surf', 'infra', 
-                'sexe', 'trajet', 'col'
+            'Replaced': [
+                'grav', 'lum', 'atm', 'agg', 'int',
+                'catr', 'surf', 'infra', 'sexe',
+                'trajet', 'catu'
             ],
             'Example Values': [
-                'Unharmed, Minor injury, Hospitalized, Killed',
+                'Unharmed, Killed, Hospitalized, Minor injury',
                 'Daylight, Twilight, Night without lighting, Night with lighting',
                 'Normal, Light rain, Heavy rain, Snow, Fog, Strong wind',
                 'Outside built-up area, In built-up area',
@@ -293,239 +168,132 @@ def render(df_raw, df_clean):
                 'Without, Bike lane (separated), Bike lane (painted), Reserved lane',
                 'Male, Female',
                 'Home-work, Home-school, Shopping, Professional use, Leisure',
-                'Two vehicles - front, from rear, from side, Without collision'
+                'Driver, Passenger, Pedestrian'
             ]
         })
         
         st.dataframe(decoded_cols, use_container_width=True, hide_index=True, height=400)
         
-        with st.expander("🔍 View Complete Decoding Dictionaries"):
-            st.markdown("See all code-to-label mappings used:")
-            
-            from utils.prep import (
-                GRAVITY_DICT, LIGHTING_DICT, WEATHER_DICT, AGGLOMERATION_DICT,
-                INTERSECTION_DICT, ROAD_CATEGORY_DICT, SURFACE_DICT, INFRASTRUCTURE_DICT,
-                GENDER_DICT, TRIP_PURPOSE_DICT, COLLISION_TYPE_DICT
-            )
-            
-            subtab1, subtab2, subtab3 = st.tabs(["Basic", "Conditions", "Infrastructure"])
-            
-            with subtab1:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**Gravity**")
-                    st.dataframe(pd.DataFrame(list(GRAVITY_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                    st.markdown("**Gender**")
-                    st.dataframe(pd.DataFrame(list(GENDER_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                with col2:
-                    st.markdown("**Agglomeration**")
-                    st.dataframe(pd.DataFrame(list(AGGLOMERATION_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                    st.markdown("**Trip Purpose**")
-                    st.dataframe(pd.DataFrame(list(TRIP_PURPOSE_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-            
-            with subtab2:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**Lighting**")
-                    st.dataframe(pd.DataFrame(list(LIGHTING_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                    st.markdown("**Weather**")
-                    st.dataframe(pd.DataFrame(list(WEATHER_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                with col2:
-                    st.markdown("**Surface**")
-                    st.dataframe(pd.DataFrame(list(SURFACE_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                    st.markdown("**Road Category**")
-                    st.dataframe(pd.DataFrame(list(ROAD_CATEGORY_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-            
-            with subtab3:
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**Infrastructure**")
-                    st.dataframe(pd.DataFrame(list(INFRASTRUCTURE_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
-                with col2:
-                    st.markdown("**Intersection Type**")
-                    st.dataframe(pd.DataFrame(list(INTERSECTION_DICT.items()), columns=['Code', 'Label']), 
-                                hide_index=True, use_container_width=True)
+        st.info("""
+        💡 **Note:** Original encoded columns (e.g., `grav`, `lum`) were **replaced** 
+        by their decoded versions. They are not kept in the final dataset.
+        """)
     
     with tab2:
         st.markdown("""
-        #### What are temporal variables?
+        #### Temporal variables extracted from date/time
         
-        We extracted **date and time components** from the original date/time fields to enable 
-        flexible temporal analysis (by hour, day, month, season, etc.).
+        We created **7 time-based features** to analyze temporal patterns:
         """)
         
         temporal_cols = pd.DataFrame({
             'New Column': [
-                'datetime', 'year', 'month_num', 'month_name', 
-                'day_of_week', 'hour', 'time_period'
+                'date', 'day_of_week', 'day_name', 'hour', 'time_period',
+                'season', 'is_weekend'
             ],
             'Description': [
-                'Full timestamp combining date + time',
-                'Year (2005-2022) - duplicate of "an" for clarity',
-                'Month as number (1-12)',
-                'Month name (January, February, ...)',
+                'Full date (YYYY-MM-DD)',
+                'Day number (0=Monday, 6=Sunday)',
                 'Day name (Monday, Tuesday, ...)',
-                'Hour of day (0-23)',
-                'Time period: Night (0-6h), Morning (6-12h), Afternoon (12-18h), Evening (18-24h)'
+                'Hour (0-23)',
+                'Time period (Morning rush, Afternoon, Evening rush, etc.)',
+                'Season (Winter, Spring, Summer, Autumn)',
+                'Weekend flag (0=Weekday, 1=Weekend)'
             ],
-            'Usage Example': [
-                'Filter by exact date and time',
-                'Group accidents by year for trends',
-                'Analyze monthly patterns',
-                'Create readable time-based charts',
-                'Compare weekday vs weekend',
-                'Identify peak accident hours',
-                'Compare accidents by time of day'
+            'Source Fields': [
+                'year + month + day',
+                'date',
+                'day_of_week',
+                'hrmn (first 2 digits)',
+                'hour',
+                'month',
+                'day_of_week'
             ]
         })
         
-        st.dataframe(temporal_cols, use_container_width=True, hide_index=True)
+        st.dataframe(temporal_cols, use_container_width=True, hide_index=True, height=300)
     
     with tab3:
         st.markdown("""
-        #### What are calculated features?
+        #### Calculated analytical features
         
-        We created **analytical variables** by combining or categorizing existing data 
-        to facilitate specific insights.
+        We created **7 derived variables** for advanced analysis:
         """)
         
         calculated_cols = pd.DataFrame({
             'New Column': [
-                'age_group',
-                'is_severe',
-                'is_fatal',
-                'dangerous_conditions',
-                'has_bike_infrastructure',
-                'is_weekend',
-                'season'
+                'is_fatal', 'is_severe', 'is_injury', 'is_night',
+                'bad_weather', 'age_group', 'slippery_surface'
             ],
-            'Formula/Logic': [
-                'Categories: 0-12, 13-17, 18-25, 26-35, 36-50, 51-65, 65+',
-                'True if gravity = Hospitalized or Killed',
-                'True if gravity = Killed',
-                'True if: Night OR Bad weather OR Slippery surface',
-                'True if: Bike lane or Bike path exists',
-                'True if: Saturday or Sunday',
-                'Winter (Dec-Feb), Spring (Mar-May), Summer (Jun-Aug), Autumn (Sep-Nov)'
+            'Description': [
+                'Binary flag: 1 if killed, 0 otherwise',
+                'Binary flag: 1 if killed or hospitalized',
+                'Binary flag: 1 if any injury (not unharmed)',
+                'Binary flag: 1 if accident at night',
+                'Binary flag: 1 if bad weather conditions',
+                'Age category (Minor, Young adult, Adult, Senior, Elderly)',
+                'Binary flag: 1 if wet/icy/snowy surface'
             ],
-            'Analytical Purpose': [
-                'Compare vulnerability across age groups',
-                'Focus on serious accidents',
-                'Identify deadly patterns',
-                'Assess combined risk factors',
-                'Evaluate infrastructure effectiveness',
-                'Compare commuting vs leisure patterns',
-                'Analyze seasonal trends'
+            'Formula': [
+                'grav == 2',
+                'grav in [2, 3]',
+                'grav != 1',
+                'lum in [3, 4, 5]',
+                'atm in [2, 3, 4, 5, 6]',
+                'Categorized from age field',
+                'surf in [2, 3, 4, 5, 6, 7, 8]'
             ]
         })
         
-        st.dataframe(calculated_cols, use_container_width=True, hide_index=True)
+        st.dataframe(calculated_cols, use_container_width=True, hide_index=True, height=300)
     
-    # Final column count explanation
+    # ========================================================================
+    # STEP 4: ROWS CLEANED
+    # ========================================================================
+    
     st.markdown("---")
-    st.info("""
-    📖 **About the Decoding Dictionaries**
+    st.markdown("## 🧹 Step 4: Data Cleaning")
     
-    All code-to-label mappings are based on the **official BAAC documentation** 
-    (Bulletin d'Analyse des Accidents Corporels) from ONISR (Observatoire National 
-    Interministériel de la Sécurité Routière).
-    
-    **Source:** [data.gouv.fr - Accidents de vélo](https://www.data.gouv.fr/datasets/accidents-de-velo/)
+    st.markdown("""
+    We removed invalid or incomplete rows to ensure data quality.
     """)
     
-    # ========================================================================
-    # STEP 4: MISSING VALUES
-    # ========================================================================
+    rows_removed = len(df_raw) - len(df_clean)
+    removal_rate = (rows_removed / len(df_raw) * 100) if len(df_raw) > 0 else 0
     
-    st.markdown("---")
-    st.markdown("## ❓ Step 4: Missing Values Handling")
+    col1, col2, col3 = st.columns(3)
     
-    missing_report = get_missing_values_report(df_clean)
+    with col1:
+        st.metric(
+            label="🗑️ Rows Removed",
+            value=f"{rows_removed:,}",
+            delta=f"-{removal_rate:.1f}%",
+            delta_color="inverse"
+        )
     
-    if len(missing_report) > 0:
-        st.markdown(f"""
-        After cleaning, **{len(missing_report)} columns** still contain missing values. 
-        This is **normal and expected** - it reflects real-world data collection limitations.
-        """)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### Top 10 Columns with Missing Data")
-            st.dataframe(
-                missing_report.head(10).style.format({
-                    'Missing Count': '{:,.0f}',
-                    'Missing Percentage': '{:.2f}%'
-                }).background_gradient(subset=['Missing Percentage'], cmap='Reds'),
-                use_container_width=True,
-                hide_index=True,
-                height=350
-            )
-            if len(missing_report) > 10:
-                st.caption(f"Showing top 10 of {len(missing_report)} columns")
-        
-        with col2:
-            st.markdown("#### Missing Values Distribution")
-            fig = px.bar(
-                missing_report.head(10),
-                x='Missing Percentage',
-                y='Column',
-                orientation='h',
-                color='Missing Percentage',
-                color_continuous_scale='Reds'
-            )
-            fig.update_layout(
-                height=350, 
-                showlegend=False,
-                xaxis_title="Missing (%)",
-                yaxis_title="",
-                margin=dict(l=0, r=0, t=20, b=0)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        st.markdown("#### Our Strategy")
-        
-        strategy_cols = st.columns(3)
-        
-        with strategy_cols[0]:
-            st.markdown("""
-            **🗺️ Geographic Data**
-            - Some accidents lack GPS coordinates
-            - Kept as missing (reflects reality)
-            - Does not impact non-geographic analyses
-            """)
-        
-        with strategy_cols[1]:
-            st.markdown("""
-            **📊 Categorical Variables**
-            - Missing = "Not specified" by officer
-            - Preserved to show data gaps
-            - Excluded from relevant calculations
-            """)
-        
-        with strategy_cols[2]:
-            st.markdown("""
-            **🔢 Numeric Fields**
-            - Codes like -1, 0 = "Unknown"
-            - Documented in data dictionary
-            - Handled appropriately per analysis
-            """)
-        
-        st.success("""
-        ✅ **No imputation applied** - We chose transparency over artificial data completion. 
-        Missing values are excluded from analyses rather than being estimated.
-        """)
-    else:
-        st.success("✅ No missing values detected!")
+    with col2:
+        st.metric(
+            label="✅ Rows Kept",
+            value=f"{len(df_clean):,}",
+            delta=f"{100-removal_rate:.1f}%"
+        )
+    
+    with col3:
+        st.metric(
+            label="📊 Data Quality",
+            value=f"{100-removal_rate:.1f}%",
+            help="Percentage of valid rows"
+        )
+    
+    st.markdown("""
+    **Cleaning rules applied:**
+    - ❌ Removed rows with missing critical data (year, month, day, gravity, department)
+    - ❌ Removed rows with invalid gravity codes (not in 1-4)
+    - ❌ Removed rows with invalid years (< 2005 or > 2023)
+    - ❌ Removed rows with invalid ages (< 0 or > 120)
+    - ❌ Removed rows with invalid department codes (not matching French department format)
+    - ❌ Removed duplicate rows
+    """)
     
     # ========================================================================
     # STEP 5: DATA QUALITY VALIDATION
@@ -545,6 +313,7 @@ def render(df_raw, df_clean):
     year_range = range(int(df_clean['year'].min()), int(df_clean['year'].max()) + 1)
     missing_years = [y for y in year_range if y not in years_count.index]
     
+    # Validation table
     validation_checks = pd.DataFrame({
         'Validation Check': [
             '✅ No duplicate rows',
@@ -558,8 +327,8 @@ def render(df_raw, df_clean):
         ],
         'Result': [
             f'{len(df_clean):,} unique person records',
-            f'18 years covered (2005-2022)' if not missing_years else f'⚠️ Missing years: {missing_years}',
-            '2005-2022',
+            f'18 years covered (2005-2023)' if not missing_years else f'⚠️ Missing years: {missing_years}',
+            '2005-2023',
             f'{dept_count} departments (95% coverage)',
             '11 categorical variables successfully decoded',
             f'Range: {int(df_clean["hour"].min())}-{int(df_clean["hour"].max())} ✓',
@@ -578,74 +347,94 @@ def render(df_raw, df_clean):
     st.success("✅ All validation checks passed successfully!")
     
     # ========================================================================
-    # LIMITATIONS & BIASES
+    # FINAL SUMMARY
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("## ⚠️ Data Limitations & Biases")
+    st.markdown("## 📊 Final Dataset Summary")
     
-    st.warning("""
-    **Important considerations when interpreting results:**
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Total Records", f"{len(df_clean):,}")
+    
+    with col2:
+        st.metric("Total Columns", f"{len(df_clean.columns)}")
+    
+    with col3:
+        st.metric("Time Period", "2005-2023")
+    
+    with col4:
+        st.metric("Departments", dept_count)
+
+    # ========================================================================
+    # DATASET STRUCTURE
+    # ========================================================================
+    
+    st.markdown("---")
+    st.markdown("## 📋 Dataset Columns & Descriptions")
+    
+    st.markdown(f"""
+    The cleaned dataset contains **{len(df_clean.columns)} columns**. 
+    Below is a description of each column to help you understand the data.
     """)
     
-    limit1, limit2 = st.columns(2)
+    # Create column description table
+    column_descriptions = pd.DataFrame({
+        'Column': [
+            'date', 'hrmn', 'datetime', 'year', 'month_num', 'month_name', 'day_of_week',
+            'hour', 'time_period', 'season', 'dep', 'com', 'lat', 'long',
+            'gravity', 'lighting', 'weather', 'agglomeration', 'intersection_type',
+            'road_category', 'surface_condition', 'infrastructure', 'gender', 'trip_purpose',
+            'collision_type', 'age', 'age_group', 'is_severe', 'is_fatal', 
+            'dangerous_conditions', 'has_bike_infrastructure', 'is_weekend'
+        ],
+        'Description': [
+            'Date of the accident (YYYY-MM-DD)',
+            'Time of the accident (HH:MM)',
+            'Full datetime of the accident',
+            'Year (2005-2023)',
+            'Month number (1-12)',
+            'Month name (January, February, ...)',
+            'Day of week (Monday, Tuesday, ...)',
+            'Hour of day (0-23)',
+            'Time period (Morning rush, Afternoon, Evening rush, Night)',
+            'Season (Winter, Spring, Summer, Autumn)',
+            'Department code (01-95, 2A, 2B)',
+            'Municipality code (INSEE)',
+            'Latitude coordinate',
+            'Longitude coordinate',
+            'Injury severity: Unharmed, Killed, Hospitalized, Minor injury',
+            'Lighting: Daylight, Twilight, Night (with/without lighting)',
+            'Weather: Normal, Light/Heavy rain, Snow, Fog, Strong wind, etc.',
+            'Location: In built-up area or Outside built-up area',
+            'Intersection type: X, T, Y, Roundabout, Level crossing, etc.',
+            'Road category: Highway, National road, Departmental, Municipal',
+            'Surface condition: Normal, Wet, Puddles, Icy, Snowy, Mud, Oil',
+            'Cycling infrastructure: Without, Bike lane (separated), Bike lane (painted), Reserved lane',
+            'Gender: Male, Female',
+            'Trip purpose: Home-work, Home-school, Shopping, Professional, Leisure',
+            'Collision type: Front, Rear, Side, Chain, Multiple, Without collision',
+            'Age of the victim (years)',
+            'Age group: 0-12, 13-17, 18-25, 26-35, 36-50, 51-65, 65+',
+            'Severe accident (hospitalized or killed): True/False',
+            'Fatal accident (killed): True/False',
+            'Dangerous conditions (night OR bad weather OR slippery surface): True/False',
+            'Has bike infrastructure (bike lane present): True/False',
+            'Weekend (Saturday or Sunday): True/False'
+        ]
+    })
     
-    with limit1:
-        st.markdown("""
-        **📊 Data Collection Biases**
-        
-        1. **Reporting Bias**: Only accidents reported to law enforcement are included. 
-           Minor accidents without police intervention are missing.
-        
-        2. **Severity Threshold**: Only accidents with ≥1 injured person requiring 
-           medical care are included. Property-damage-only excluded.
-        
-        3. **Person-Level Data**: Each row = one person, not one accident. 
-           Single accidents can have multiple rows.
-        
-        4. **Geographic Precision**: Some accidents lack GPS coordinates due to 
-           reporting limitations or privacy.
-        """)
+    st.dataframe(
+        column_descriptions,
+        use_container_width=True,
+        hide_index=True,
+        height=600
+    )
     
-    with limit2:
-        st.markdown("""
-        **🔍 Analysis Limitations**
-        
-        5. **No Exposure Data**: We cannot calculate true accident *rates* because 
-           we don't know cycling volume (only absolute counts).
-        
-        6. **Evolving Standards**: Data collection may have changed over 18 years, 
-           affecting temporal comparisons.
-        
-        7. **Missing Context**: No data on cyclist behavior, traffic density, 
-           or infrastructure quality changes over time.
-        
-        8. **Dangerous vs High-Traffic**: Cannot distinguish between inherently 
-           dangerous areas and areas with more cyclists.
-        """)
     
     st.info("""
-    💡 **These limitations are acknowledged in all analyses and do not invalidate the findings - 
-    they simply require careful interpretation.**
-    """)
-    
-    # ========================================================================
-    # CONCLUSION
-    # ========================================================================
-    
-    st.markdown("---")
-    
-    st.success("""
-    ## ✅ Data Quality Conclusion
-    
-    The dataset has been:
-    - ✅ **Thoroughly cleaned** - Invalid data removed, inconsistencies resolved
-    - ✅ **Enriched** - 25 new columns added for better analysis
-    - ✅ **Validated** - All quality checks passed
-    - ✅ **Documented** - Every transformation is transparent and reproducible
-    
-    Despite inherent limitations in the data collection process, **the cleaned dataset 
-    is of sufficient quality for meaningful analysis** of cycling accident patterns in France.
-    
-    **👉 Ready to explore insights?** Continue to the **Overview** section!
+    💡 **Ready for Analysis!**  
+    The dataset is now clean, validated, and ready for comprehensive analysis. 
+    All categorical variables are decoded, temporal features are extracted, and quality checks have passed.
     """)

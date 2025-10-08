@@ -60,8 +60,6 @@ def render(metadata):
     st.markdown("""
     Cycling has experienced a **significant boom in France** over the past two decades, 
     driven by environmental concerns, urban congestion, and health awareness. 
-    The COVID-19 pandemic further accelerated this trend, with cities implementing 
-    temporary and permanent cycling infrastructure.
     
     However, this increase in cycling activity raises critical questions about **cyclist safety**. 
     Understanding accident patterns, risk factors, and vulnerable populations is essential 
