@@ -135,30 +135,32 @@ def render(df_filtered, tables):
                 st.write(f"• **{row['gravity']}**: {row['count']:,} ({row['percentage']:.1f}%)")
         
         with col2:
-            # Stacked bar chart comparing gravity distribution
+            # Grouped bar chart comparing gravity distribution
             fig_comparison = px.bar(
                 urban_rural_gravity,
-                x='agglomeration',
+                x='gravity',
                 y='count',
-                color='gravity',
+                color='agglomeration',
                 title='Accident Severity Distribution: Urban vs Rural',
-                labels={'count': 'Number of Accidents', 'agglomeration': 'Location Type'},
+                labels={'count': 'Number of Accidents', 'gravity': 'Severity'},
                 color_discrete_map={
-                    'Unharmed': '#2ecc71',
-                    'Minor injury': '#f1c40f',
-                    'Hospitalized': '#e67e22',
-                    'Killed': '#e74c3c'
+                    'In built-up area': '#3498db',
+                    'Outside built-up area': '#e67e22'
                 },
-                barmode='stack',
+                barmode='group',
                 text='count'
             )
             
             fig_comparison.update_traces(
-                texttemplate='%{text:,}', 
-                textposition='inside',
-                textfont=dict(size=18, color='black')  # ← AJOUTÉ
+                texttemplate='%{text:,}',
+                textposition='outside',
+                textfont=dict(size=12)
             )
-            fig_comparison.update_layout(height=400)
+            
+            fig_comparison.update_layout(
+                height=500,
+                xaxis={'categoryorder': 'array', 'categoryarray': ['Killed', 'Hospitalized', 'Minor injury', 'Unharmed']}
+            )
             
             st.plotly_chart(fig_comparison, use_container_width=True)
             
@@ -274,12 +276,13 @@ def render(df_filtered, tables):
         most_at_risk = total_by_age.sort_values('fatal_rate', ascending=False).iloc[0]
         
         st.info(f"""
-        **📊 Age Insights:**
-        - Most affected group: **{most_affected['age_group']}** ({most_affected['total']:,} accidents)
-        - Highest fatal rate: **{most_at_risk['age_group']}** ({most_at_risk['fatal_rate']:.1f}%)
-        - Average victim age: **{df_filtered['age'].mean():.0f} years**
+        📊 **Age Insights:**
+        - Most affected group: **{most_affected['age_group']}** ({most_affected['total']:,} accidents) This age group accounts for the highest number of accidents, likely because they often use bikes for daily work commutes
+
+        - Highest fatal rate: **{most_at_risk['age_group']}** ({most_at_risk['fatal_rate']:.1f}%) : Older cyclists have fewer accidents but much higher severity, certainly because their are more physically fragile, have slower reflexes and more health complication
         """)
-    
+        
+        
     with col2:
         st.markdown("#### 👫 Gender Distribution")
         

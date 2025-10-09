@@ -86,6 +86,19 @@ INFRASTRUCTURE_DICT = {
     4: 'Other infrastructure'
 }
 
+# NEW: Situation dictionary
+SITUATION_DICT = {
+    -1: 'Not specified',
+    0: 'None',
+    1: 'On roadway',
+    2: 'On emergency lane',
+    3: 'On shoulder',
+    4: 'On sidewalk',
+    5: 'On bike path',
+    6: 'On other special lane',
+    8: 'Other'
+}
+
 GENDER_DICT = {
     1: 'Male',
     2: 'Female'
@@ -197,6 +210,7 @@ def clean_data(df_raw):
     df['road_category'] = df['catr'].map(ROAD_CATEGORY_DICT)
     df['surface_condition'] = df['surf'].map(SURFACE_DICT)
     df['infrastructure'] = df['infra'].map(INFRASTRUCTURE_DICT)
+    df['situation'] = df['situ'].map(SITUATION_DICT)  # NEW: Decode situation
     df['gender'] = df['sexe'].map(GENDER_DICT)
     df['trip_purpose'] = df['trajet'].map(TRIP_PURPOSE_DICT)
     df['collision_type'] = df['col'].map(COLLISION_TYPE_DICT)
@@ -266,7 +280,7 @@ def clean_data(df_raw):
     # Remove original encoded columns as decoded versions are more user-friendly
     columns_to_remove_after_decoding = [
         'grav', 'lum', 'atm', 'agg', 'int', 'catr', 
-        'surf', 'infra', 'sexe', 'trajet', 'col',
+        'surf', 'infra', 'situ', 'sexe', 'trajet', 'col',  # Added 'situ' here
         'an'  # duplicate of 'year'
     ]
     df = df.drop(columns=columns_to_remove_after_decoding, errors='ignore')
