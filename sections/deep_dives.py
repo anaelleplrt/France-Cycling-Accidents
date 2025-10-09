@@ -44,7 +44,7 @@ def render(df_filtered, tables):
         
         st.info("""
         **💡 Insights**:
-        - **Accident peaks**: 8am (commute to work) and 6pm (return home)
+        - **Accident peaks**: 8am (commute to work) and 5pm (return home)
         - **Low activity hours**: 2am-5am (very few cyclists)
         - **Severity**: Night accidents (8pm-6am) are proportionally more fatal
         """)

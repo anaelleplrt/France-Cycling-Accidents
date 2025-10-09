@@ -18,35 +18,57 @@ import streamlit as st
 
 def plot_hourly_distribution(df):
     """
-    Grouped bar chart showing hourly accident distribution by severity.
+    Dual-axis line chart: total accidents + fatality rate by hour.
     """
-    # Extract hour from hour column
     df_copy = df.copy()
     
-    # Group by hour and gravity
-    hourly = df_copy.groupby(['hour', 'gravity']).size().reset_index(name='count')
+    # Calculate stats by hour
+    hourly_stats = df_copy.groupby('hour').agg({
+        'gravity': 'count',  # Total accidents
+        'is_fatal': 'sum'    # Fatal accidents
+    }).reset_index()
+    hourly_stats.columns = ['hour', 'total', 'fatal']
+    hourly_stats['fatal_rate'] = (hourly_stats['fatal'] / hourly_stats['total'] * 100).round(2)
     
-    # Create grouped bar chart
-    fig = px.bar(
-        hourly,
-        x='hour',
-        y='count',
-        color='gravity',
-        color_discrete_map={
-            'Unharmed': '#2ecc71',
-            'Minor injury': '#f1c40f',
-            'Hospitalized': '#e67e22',
-            'Killed': '#e74c3c'
-        },
-        title='Accident distribution by hour of day',
-        labels={'hour': 'Hour', 'count': 'Number of accidents', 'gravity': 'Severity'},
-        barmode='group'
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    
+    # Add total accidents (left axis)
+    fig.add_trace(
+        go.Scatter(
+            x=hourly_stats['hour'],
+            y=hourly_stats['total'],
+            name='Total accidents',
+            line=dict(color='#3498db', width=3),
+            fill='tozeroy',
+            fillcolor='rgba(52, 152, 219, 0.2)'
+        ),
+        secondary_y=False
     )
     
+    # Add fatality rate (right axis)
+    fig.add_trace(
+        go.Scatter(
+            x=hourly_stats['hour'],
+            y=hourly_stats['fatal_rate'],
+            name='Fatality rate (%)',
+            line=dict(color='#e74c3c', width=3, dash='dash'),
+            mode='lines+markers',
+            marker=dict(size=6)
+        ),
+        secondary_y=True
+    )
+    
+    # Update axes
+    fig.update_xaxes(title_text="Hour", tickmode='linear', tick0=0, dtick=2)
+    fig.update_yaxes(title_text="Number of accidents", secondary_y=False)
+    fig.update_yaxes(title_text="Fatality rate (%)", secondary_y=True)
+    
     fig.update_layout(
-        xaxis=dict(tickmode='linear', tick0=0, dtick=2),
+        title='Accident volume vs severity by hour of day',
         hovermode='x unified',
-        height=450
+        height=450,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
     
     return fig
