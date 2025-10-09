@@ -1,5 +1,5 @@
 """
-Visualization functions for the cycling accidents dashboard.
+Visualization functions for the cycling accidents dashboard : deep dives sections 
 """
 
 import plotly.express as px
@@ -74,68 +74,85 @@ def plot_hourly_distribution(df):
     return fig
 
 
-def plot_day_season_heatmap(df):
+def plot_weekly_pattern(df):
     """
-    Heatmap showing accidents by day of week and season.
+    Clean bar chart showing accident distribution by day of week.
     """
-    # Use existing season column from cleaned data
     df_copy = df.copy()
     
-    # Create mapping for day_of_week if needed
-    if 'day_of_week' in df_copy.columns:
-        day_col = 'day_of_week'
-    else:
-        day_col = 'day_name'  # Assuming day_name exists
+    # Group by day of week
+    daily = df_copy.groupby('day_of_week').size().reset_index(name='count')
     
-    # Create pivot table
-    heatmap_data = df_copy.groupby([day_col, 'season']).size().reset_index(name='count')
-    pivot = heatmap_data.pivot(index=day_col, columns='season', values='count')
+    # Ensure correct order
+    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    daily['day_of_week'] = pd.Categorical(daily['day_of_week'], categories=day_order, ordered=True)
+    daily = daily.sort_values('day_of_week')
     
-    # Day order (adjust based on your data format)
-    if 'Monday' in pivot.index.tolist():
-        day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    else:
-        day_order = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
+    # Add weekday/weekend distinction
+    daily['type'] = daily['day_of_week'].apply(
+        lambda x: 'Weekend' if x in ['Saturday', 'Sunday'] else 'Weekday'
+    )
     
-    # Season order (adjust based on your data)
-    if 'Spring' in pivot.columns.tolist():
-        season_order = ['Spring', 'Summer', 'Autumn', 'Winter']
-    else:
-        season_order = ['Printemps', 'Été', 'Automne', 'Hiver']
+
+    fig = go.Figure()
     
-    # Reindex days (fill missing days with 0)
-    pivot = pivot.reindex(day_order, fill_value=0)
-    
-    # Reindex seasons (only keep existing ones, fill missing with 0)
-    existing_seasons = [s for s in season_order if s in pivot.columns]
-    missing_seasons = [s for s in season_order if s not in pivot.columns]
-    
-    # Add missing seasons with 0 values
-    for season in missing_seasons:
-        pivot[season] = 0
-    
-    # Reorder columns
-    pivot = pivot[season_order]
-    
-    fig = go.Figure(data=go.Heatmap(
-        z=pivot.values,
-        x=pivot.columns,
-        y=pivot.index,
-        colorscale='YlOrRd',
-        text=pivot.values,
-        texttemplate='%{text}',
-        textfont={"size": 12},
-        colorbar=dict(title="Accidents")
+    fig.add_trace(go.Bar(
+        x=daily['day_of_week'],
+        y=daily['count'],
+        text=daily['count'],
+        texttemplate='%{text:,}',
+        textposition='outside',
+        hovertemplate='%{x}<br>Accidents: %{y:,}<extra></extra>'
     ))
     
     fig.update_layout(
-        title='Accident distribution by day of week and season',
-        xaxis_title='Season',
-        yaxis_title='Day of week',
-        height=400
+        title='Accident distribution by day of week',
+        xaxis_title='Day of week',
+        yaxis_title='Number of accidents',
+        height=650,
+        showlegend=False
     )
     
     return fig
+
+
+def plot_seasonal_pattern(df):
+    """
+    Stacked bar chart showing seasonal distribution with severity.
+    """
+    df_copy = df.copy()
+    
+    # Group by season and gravity
+    seasonal = df_copy.groupby(['season', 'gravity']).size().reset_index(name='count')
+    
+    # Ensure season order
+    season_order = ['Spring', 'Summer', 'Autumn', 'Winter']
+    seasonal['season'] = pd.Categorical(seasonal['season'], categories=season_order, ordered=True)
+    seasonal = seasonal.sort_values('season')
+    
+    # Create stacked bar chart
+    fig = px.bar(
+        seasonal,
+        x='season',
+        y='count',
+        color='gravity',
+        color_discrete_map={
+            'Unharmed': '#2ecc71',
+            'Minor injury': '#f1c40f',
+            'Hospitalized': '#e67e22',
+            'Killed': '#e74c3c'
+        },
+        title='Seasonal distribution with severity breakdown',
+        labels={'season': 'Season', 'count': 'Number of accidents', 'gravity': 'Severity'},
+        text='count',
+        height=500
+    )
+    
+    fig.update_traces(texttemplate='%{text:,}', textposition='inside')
+    fig.update_layout(barmode='stack', xaxis_title='Season', yaxis_title='Number of accidents')
+    
+    return fig
+
 
 
 # ============================================================================
@@ -196,6 +213,8 @@ def plot_weather_lighting_conditions(df):
     )
     
     return fig
+
+
 
 
 # ============================================================================
@@ -324,7 +343,7 @@ def plot_waffle_situation(df):
               markerscale=1.5)  # Larger legend markers
     
     plt.suptitle('Accident distribution by road situation', 
-                fontsize=15, fontweight='bold', y=0.95)
+                fontsize=15, fontweight='bold', y=1)
     plt.tight_layout(rect=[0, 0, 1, 0.92])
     
     return fig
@@ -365,7 +384,6 @@ def plot_bike_infrastructure_effectiveness(df):
             'Hospitalized': '#e67e22',
             'Killed': '#e74c3c'
         },
-        title='Cycling infrastructure effectiveness on accident severity',
         labels={'infra_type': 'Infrastructure type', 'count': 'Number of accidents', 'gravity': 'Severity'},
         barmode='group',
         text='count'
@@ -373,11 +391,12 @@ def plot_bike_infrastructure_effectiveness(df):
     
     fig.update_traces(texttemplate='%{text}', textposition='outside')
     fig.update_layout(
-        height=550,
+        height=500,
         xaxis_title='Infrastructure type',
         yaxis_title='Number of accidents'
     )
     
     return fig
+
 
 

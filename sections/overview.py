@@ -21,7 +21,7 @@ def render(df_filtered, tables):
     st.markdown("## 📊 Overview: Cycling Accidents in France")
     
     st.markdown("""
-    This section provides a **high-level view** of cycling accident patterns across France 
+    This section provides a view of cycling accident patterns across France 
     from 2005 to 2022. Use the sidebar filters to explore specific time periods, departments, 
     or severity levels.
     """)
@@ -518,8 +518,7 @@ def render(df_filtered, tables):
     st.success("""
     **👉 Want to dig deeper?**  
     Head to the **Deep Dive Analysis** section to explore:
-    - Hourly and daily patterns
+    - Hourly, daily and seasonaly patterns
     - Weather and lighting conditions
     - Infrastructure effectiveness
-    - Victim profiles by age and gender
     """)

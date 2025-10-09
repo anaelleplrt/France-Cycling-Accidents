@@ -238,8 +238,7 @@ elif section == "📊 Overview":
     overview.render(df_filtered, tables)
 
 elif section == "🔬 Deep Dive Analysis":
-    deep_dives.render(df_filtered, tables)
-
+    deep_dives.render(df_filtered, tables, year_range, selected_departments, selected_gravity, selected_agglomeration)
 elif section == "💡 Conclusions":
     conclusions.render(df_filtered)
 
