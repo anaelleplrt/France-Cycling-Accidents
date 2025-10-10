@@ -106,8 +106,8 @@ def render(df_raw, df_clean):
     st.markdown("""
     We transformed and created **new columns** to make the data more understandable and enable deeper insights:
     - **12 decoded** (replaced encoded columns with readable labels)
-    - **7 temporal** (extracted from date/time fields)
-    - **7 calculated** (derived new analytical features)
+    - **8 temporal** (extracted from date/time fields)
+    - **6 calculated** (derived new analytical features)
     """)
     
     col1, col2, col3 = st.columns(3)
@@ -122,7 +122,7 @@ def render(df_raw, df_clean):
     with col2:
         st.metric(
             label="📅 Temporal Features",
-            value="7 columns",
+            value="8 columns",
             help="Time-based variables extracted from dates"
         )
     
@@ -374,7 +374,16 @@ COLLISION_TYPE_DICT = {
         st.markdown("""
         #### Temporal variables extracted from date/time
         
-        We created **7 time-based features** to analyze temporal patterns:
+        We created **time-based features** to analyze temporal patterns at different granularities.
+        
+        **Why create multiple time features?**
+        While some columns may seem redundant (e.g., we have both `month_num` and `month_name`), 
+        each serves a specific analytical purpose:
+        - **Numeric formats** (`month_num`, `hour`) → for calculations, sorting, and filtering
+        - **Text formats** (`month_name`, `day_of_week`) → for readable visualizations and reports
+        - **Aggregated periods** (`time_period`, `season`) → for high-level pattern analysis
+        
+        This multi-level approach enables flexible analysis: from hourly patterns to seasonal trends.
         """)
         
         temporal_cols = pd.DataFrame({
@@ -384,11 +393,11 @@ COLLISION_TYPE_DICT = {
             ],
             'Description': [
                 'Full datetime (YYYY-MM-DD HH:MM)',
-                'Year (2005-2023)',
+                'Year (2005-2023), we renamed ‘an’ to year for clarity and English consistency ',
                 'Month number (1-12)',
                 'Month name (January, February, ...)',
                 'Day name (Monday, Tuesday, ...)',
-                'Hour (0-23)',
+                'Hour (0-23), Extracted the hour portion from ‘hrmn‘ for easier analysis',
                 'Time period (Night, Morning, Afternoon, Evening)',
                 'Season (Winter, Spring, Summer, Autumn)'
             ],
@@ -410,7 +419,7 @@ COLLISION_TYPE_DICT = {
         st.markdown("""
         #### Calculated analytical features
         
-        We created **7 derived variables** for advanced analysis:
+        We created **6 derived variables** for advanced analysis:
         """)
         
         calculated_cols = pd.DataFrame({
@@ -620,7 +629,14 @@ COLLISION_TYPE_DICT = {
         'manv': 'Main maneuver before accident',
         'motor': 'Motor type',
         'occutc': 'Occupants in public transport',
-        'etatp': 'Pedestrian action'
+        'etatp': 'Pedestrian action',
+        'mois': 'Month of accident (original column, replaced by month_num)',
+        'jour': 'Day of month (original column)',
+        'secuexist': 'Safety equipment existence flag',
+        'equipement': 'Safety equipment worn by cyclist',
+        'typevehicules': 'Type of vehicle involved',
+        'manoeuvehicules': 'Vehicle maneuver category',
+        'numVehicules': 'Number of vehicles involved',
     }
     
     # Create dataframe from actual columns in dataset
