@@ -98,6 +98,7 @@ Each record represents one person involved in a cycling accident requiring medic
 - **Interactive filters**: Year range, departments, severity, location type
 - **5 dashboard sections**: Introduction, Data Quality, Overview, Deep Dive Analysis, Conclusions
 - **10+ interactive visualizations**: Plotly charts, matplotlib waffle charts
+-  **Interactive map**: Department-level heatmap
 - **Performance optimized**: `@st.cache_data` on all data operations
 - **Responsive design**: Works on desktop and tablet
 
