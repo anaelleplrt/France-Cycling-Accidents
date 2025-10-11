@@ -2,7 +2,7 @@
 
 Interactive Streamlit dashboard analyzing 18 years of bicycle accident data from the French National Road Accident Database (BAAC).
 
-**Course**: #EFREIDataStories2025  
+**Course**: Data Vizualisation #EFREIDataStories2025  
 **Author**: Anaëlle Pollart  
 **Professor**: Mano Joseph Mathew  
 **Institution**: EFREI Paris
@@ -28,22 +28,28 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 - pip
 
 ### Setup Instructions
+
+**1. Extract the ZIP file**
 ```bash
-# 1. Extract the ZIP file
 unzip StreamlitApp25_20000_POLLART_XXX.zip
 cd StreamlitApp25_20000_POLLART_XXX
+```
 
-# 2. Install dependencies
+**2. Install dependencies**
+```bash
 pip install -r requirements.txt
+```
 
-# 3. Run the app
+**3. Run the app**
+```bash
 streamlit run app.py (or, if needed : python -m streamlit run app.py)
+```
 
 The app will open at `http://localhost:8501`
 
----
 
-## 📁 Project Structure
+### 📁 Project Structure
+```text
 ├── app.py                    # Main application
 ├── sections/                 # Dashboard pages
 │   ├── intro.py
@@ -52,21 +58,23 @@ The app will open at `http://localhost:8501`
 │   ├── deep_dives.py
 │   └── conclusions.py
 ├── utils/                    # Helper functions
-│   ├── io.py                # Data loading
-│   ├── prep.py              # Data cleaning
-│   └── viz.py               # Visualizations
+│   ├── io.py                 # Data loading
+│   ├── prep.py               # Data cleaning
+│   └── viz.py                # Visualizations
 ├── data/
 │   └── accidentsVelofull.csv
 ├── requirements.txt
 └── README.md
+```
+
 ---
 
 ## 📦 Dependencies
-streamlit>=1.33.0
-pandas>=2.0.0
-numpy>=1.24.0
-plotly>=5.14.0
-matplotlib>=3.7.0
+streamlit>=1.33.0  
+pandas>=2.0.0  
+numpy>=1.24.0  
+plotly>=5.14.0  
+matplotlib>=3.7.0  
 All required libraries are listed in `requirements.txt`.
 
 ---
@@ -96,12 +104,7 @@ Each record represents one person involved in a cycling accident requiring medic
 
 ## 🚀 Deployment
 
-This app is ready for **Streamlit Community Cloud** deployment:
-
-1. Push code to GitHub
-2. Connect to [share.streamlit.io](https://share.streamlit.io)
-3. Deploy
-
+This app is ready for **Streamlit Community Cloud** deployment.
 **Deployed URL**: *(to be added)*
 
 ---
@@ -118,7 +121,6 @@ A 2-4 minute walkthrough demonstrating the dashboard's narrative and interactive
 
 - Only includes reported accidents (minor unreported incidents not captured)
 - Some missing values in optional fields
-- Cannot measure cycling volume (exposure unknown)
 - Analysis shows correlation, not causation
 
 Full data quality documentation available in the dashboard's **Data Quality** section.
@@ -139,15 +141,6 @@ Full data quality documentation available in the dashboard's **Data Quality** se
 
 **Data**: Open License (Licence Ouverte) - ONISR/data.gouv.fr  
 **Code**: Academic project for EFREI course
-
----
-
-## 🙏 Acknowledgments
-
-- ONISR for providing open accident data
-- data.gouv.fr for data hosting
-- Professor Mano Joseph Mathew for guidance
-- Streamlit and Plotly teams
 
 ---
 
