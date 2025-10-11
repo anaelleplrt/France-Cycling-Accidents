@@ -9,7 +9,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 
-def render(df_filtered, tables):
+def render(df_filtered, tables, year_range=None, selected_departments=None, selected_gravity=None, selected_agglomeration=None):
     """
     Render the overview section.
     
@@ -92,34 +92,34 @@ def render(df_filtered, tables):
     # ========================================================================
     # URBAN VS RURAL COMPARISON
     # ========================================================================
-    
+
     st.markdown("---")
     st.markdown("### Urban vs Rural: Accident Volume & Severity")
-    
+
     st.markdown("""
     Comparing accident patterns and severity distribution between built-up areas (urban) and open roads (rural).
     """)
-    
+
     st.info("""
     💡 **Interactive chart tips:**
     - 🖱️ **Hover** over the bars to see detailed numbers
     - 👆 **Click** on severity levels in the legend to show/hide them
     """)
-    
+
     # Filter only valid French department codes (needed for urban/rural analysis)
     valid_dept_pattern = r'^(0[1-9]|[1-8][0-9]|9[0-5]|2[AB])$'
     df_valid_depts = df_filtered[df_filtered['dep'].str.match(valid_dept_pattern, na=False)]
-    
+
     # Calculate urban vs rural by gravity
     urban_rural_gravity = df_valid_depts.groupby(['agglomeration', 'gravity']).size().reset_index(name='count')
-    
+
     # Calculate totals for each location type
     urban_rural_totals = df_valid_depts.groupby('agglomeration').size().reset_index(name='total')
-    
+
     # Merge to get percentages
     urban_rural_gravity = urban_rural_gravity.merge(urban_rural_totals, on='agglomeration')
     urban_rural_gravity['percentage'] = (urban_rural_gravity['count'] / urban_rural_gravity['total'] * 100).round(1)
-    
+
     if len(urban_rural_totals) >= 2:
         col1, col2, col3 = st.columns([1, 2, 1])
         
@@ -163,14 +163,6 @@ def render(df_filtered, tables):
             )
             
             st.plotly_chart(fig_comparison, use_container_width=True)
-            
-            # Calculate key metrics
-            urban_killed_pct = urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'In built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]['percentage'].values[0] if len(urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'In built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]) > 0 else 0
-            
-            rural_killed_pct = urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'Outside built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]['percentage'].values[0] if len(urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'Outside built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]) > 0 else 0
-            
-            if urban_killed_pct > 0:
-                risk_ratio = rural_killed_pct / urban_killed_pct
                 
         with col3:
             st.markdown("##### 🌾 Rural (Outside Built-up)")
@@ -183,7 +175,18 @@ def render(df_filtered, tables):
             for _, row in rural_data.iterrows():
                 st.write(f"• **{row['gravity']}**: {row['count']:,} ({row['percentage']:.1f}%)")
         
-                
+        # Calculate key metrics AFTER the columns
+        urban_killed_pct = urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'In built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]['percentage'].values[0] if len(urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'In built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]) > 0 else 0
+
+        rural_killed_pct = urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'Outside built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]['percentage'].values[0] if len(urban_rural_gravity[(urban_rural_gravity['agglomeration'] == 'Outside built-up area') & (urban_rural_gravity['gravity'] == 'Killed')]) > 0 else 0
+
+        # Calculate risk_ratio (handle division by zero)
+        if urban_killed_pct > 0:
+            risk_ratio = rural_killed_pct / urban_killed_pct
+        else:
+            risk_ratio = 0  # Default if urban has no fatalities
+        
+        # Characteristics boxes
         col1, col2 = st.columns(2)
         
         with col1:
@@ -210,17 +213,215 @@ def render(df_filtered, tables):
             **Result**: Fewer accidents but proportionally more deadly
             """)
         
-        st.success(f"""
-        💡 **The Urban-Rural Paradox:**
-        
-        Urban areas have {(urban_total/urban_rural_totals['total'].sum()*100):.0f}% of accidents but only {urban_killed_pct:.1f}% are fatal.
-        Rural areas have {(rural_total/urban_rural_totals['total'].sum()*100):.0f}% of accidents but {rural_killed_pct:.1f}% are fatal ({risk_ratio:.1f}x higher!).
-        
-        **Policy implication**: Cities need **volume management** (more bike lanes), rural areas need **speed reduction** and **infrastructure**.
-        """)
+        # Check if any filter is active (ONLY ONCE!)
+        filters_active = (
+            (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
+            (selected_departments is not None and selected_departments != ['All']) or
+            (selected_gravity is not None and selected_gravity != ['All']) or
+            (selected_agglomeration is not None and selected_agglomeration != 'All')
+        )
+
+        if filters_active:
+            # DYNAMIC ANALYSIS (with filters)
+            if urban_total > 0 and rural_total > 0 and risk_ratio > 0:
+                st.success(f"""
+                💡 **Urban-Rural Comparison** ({len(df_filtered):,} accidents in selection):
+                
+                - **Urban (In built-up area)**: {urban_total:,} accidents ({(urban_total/urban_rural_totals['total'].sum()*100):.0f}%), {urban_killed_pct:.1f}% fatality rate
+                - **Rural (Outside built-up)**: {rural_total:,} accidents ({(rural_total/urban_rural_totals['total'].sum()*100):.0f}%), {rural_killed_pct:.1f}% fatality rate
+                - **Risk multiplier**: Rural areas are {risk_ratio:.1f}x more deadly than urban areas
+                
+                👉 Adjust filters to explore how this pattern changes across years and departments.
+                """)
+            else:
+                st.info(f"""
+                💡 **Urban-Rural Comparison** ({len(df_filtered):,} accidents in selection):
+                
+                - **Urban (In built-up area)**: {urban_total:,} accidents ({(urban_total/urban_rural_totals['total'].sum()*100):.0f}%)
+                - **Rural (Outside built-up)**: {rural_total:,} accidents ({(rural_total/urban_rural_totals['total'].sum()*100):.0f}%)
+                
+                ⚠️ Insufficient data in this selection to calculate fatality rate comparison.
+                """)
+        else:
+            # GLOBAL ANALYSIS (no filters)
+            if risk_ratio > 0:
+                st.success(f"""
+                💡 **The Urban-Rural Paradox**:
+                
+                Urban areas have {(urban_total/urban_rural_totals['total'].sum()*100):.0f}% of accidents but only {urban_killed_pct:.1f}% are fatal.
+                Rural areas have {(rural_total/urban_rural_totals['total'].sum()*100):.0f}% of accidents but {rural_killed_pct:.1f}% are fatal ({risk_ratio:.1f}x higher!).
+                
+                **Why?**
+                - **Cities**: Many cyclists, slow speeds (30-50 km/h), bike infrastructure, fast emergency response → Many accidents but fewer deaths
+                - **Rural**: Fewer cyclists, high speeds (80-90 km/h), no bike lanes, delayed emergency care → Fewer accidents but more deadly
+                
+                **Policy implication**: Cities need **volume management** (more bike lanes), rural areas need **speed reduction** and **infrastructure**.
+                """)
+            else:
+                st.info("""
+                💡 **Urban-Rural Comparison**:
+                
+                Data available but insufficient fatal accidents to calculate meaningful comparison.
+                """)
     else:
         st.warning("Insufficient data for urban/rural comparison.")
     
+
+    # ========================================================================
+    # GEOGRAPHIC DISTRIBUTION (DEPARTEMENTS)
+    # ========================================================================
+
+# Juste AVANT la section carte (ligne ~240 dans ton overview.py)
+
+# Check if location filter is active
+    if selected_agglomeration and selected_agglomeration != 'All':
+        st.markdown("---")
+        st.markdown("### 🗺️ Geographic Distribution by Department")
+        
+        st.warning(f"""
+        ⚠️ **Geographic map not available with location filter active**
+        
+        You have filtered for: **{selected_agglomeration}**
+        
+        The department-level map shows all accidents regardless of location type. 
+        To view the geographic distribution, please set "Location type" filter back to "All".
+        """)
+    
+    else:
+        # TOUTE LA SECTION CARTE ICI (ton code actuel)
+        st.markdown("---")
+        st.markdown("### 🗺️ Geographic Distribution by Department")
+        
+        st.markdown("""
+        Interactive map showing accident density across French departments. 
+        **Hover over departments** to see detailed statistics.
+        """)
+        
+        # ... (ton code de carte complet)
+        st.markdown("---")
+        st.markdown("### 🗺️ Geographic Distribution by Department")
+
+        st.markdown("""
+        Interactive map showing accident density across French departments. 
+        **Hover over departments** to see detailed statistics.
+        """)
+
+        # Prepare department-level aggregated data
+        dept_map_data = df_filtered.groupby('dep').agg({
+            'date': 'count',
+            'is_fatal': 'sum',
+            'is_severe': 'sum'
+        }).reset_index()
+        dept_map_data.columns = ['dep', 'total_accidents', 'fatal', 'severe']
+
+        # Calculate rates
+        dept_map_data['fatal_rate'] = (dept_map_data['fatal'] / dept_map_data['total_accidents'] * 100).round(1)
+        dept_map_data['severe_rate'] = (dept_map_data['severe'] / dept_map_data['total_accidents'] * 100).round(1)
+
+        # Filter valid French departments only (01-95, 2A, 2B)
+        valid_dept_pattern = r'^(0[1-9]|[1-8][0-9]|9[0-5]|2[AB])$'
+        dept_map_data = dept_map_data[dept_map_data['dep'].str.match(valid_dept_pattern, na=False)]
+
+        # Create LOG SCALE for better color distribution
+        import numpy as np
+        dept_map_data['log_accidents'] = np.log10(dept_map_data['total_accidents'] + 1)
+
+        # Sort by total accidents to identify top departments
+        dept_map_data_sorted = dept_map_data.sort_values('total_accidents', ascending=False)
+
+        # Create choropleth map with LOG SCALE
+        fig_choropleth = px.choropleth(
+            dept_map_data,
+            locations='dep',
+            geojson='https://france-geojson.gregoiredavid.fr/repo/departements.geojson',
+            featureidkey='properties.code',
+            color='log_accidents',  # ← LOG SCALE !
+            hover_name='dep',
+            hover_data={
+                'dep': False,
+                'total_accidents': ':,',
+                'fatal': ':,',
+                'fatal_rate': ':.1f',
+                'log_accidents': False  # Don't show log value in hover
+            },
+            color_continuous_scale=[
+                [0.0, '#ffffcc'],   # Jaune très clair (faible)
+                [0.3, '#ffeda0'],   # Jaune
+                [0.5, '#feb24c'],   # Orange clair
+                [0.7, '#fc4e2a'],   # Orange foncé
+                [0.85, '#e31a1c'],  # Rouge
+                [1.0, "#1A1718"]    # Noir
+            ],
+            labels={
+                'total_accidents': 'Total Accidents',
+                'fatal': 'Fatal',
+                'fatal_rate': 'Fatal Rate (%)',
+                'log_accidents': 'Accidents'
+            },
+            title='Cycling Accidents Heatmap by Department (Log Scale)'
+        )
+
+        fig_choropleth.update_geos(
+            fitbounds="locations",
+            visible=False
+        )
+
+        fig_choropleth.update_layout(
+            height=700,
+            margin={"r":0,"t":50,"l":0,"b":0},
+            coloraxis_colorbar=dict(
+                title="Accidents<br>(log scale)",
+                tickvals=[1, 2, 3, 4],
+                ticktext=['10', '100', '1,000', '10,000']
+            )
+        )
+
+        st.plotly_chart(fig_choropleth, use_container_width=True)
+
+        # Calculate if filters are active
+        filters_active = (
+            (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
+            (selected_departments is not None and selected_departments != ['All']) or
+            (selected_gravity is not None and selected_gravity != ['All']) or
+            (selected_agglomeration is not None and selected_agglomeration != 'All')
+        )
+
+
+        if filters_active:
+            # DYNAMIC INSIGHT (based on filtered data)
+            top_dept = dept_map_data_sorted.iloc[0]
+            most_fatal_dept = dept_map_data.sort_values('fatal_rate', ascending=False).iloc[0]
+            
+            st.info(f"""
+            💡 **Geographic Insights** ({len(df_filtered):,} accidents in selection):
+            
+            **In your filtered selection**:
+            - **Highest volume**: Department {top_dept['dep']} ({top_dept['total_accidents']:,} accidents)
+            - **Highest fatality rate**: Department {most_fatal_dept['dep']} ({most_fatal_dept['fatal_rate']:.1f}% fatal)
+            
+            👉 Adjust filters to explore different patterns across departments and time periods.
+            """)
+        else:
+            # GLOBAL INSIGHT (no filters)
+            st.info("""
+            💡 **Geographic Insights** (79,965 total accidents):
+            
+            **Volume leaders (urban density)**:
+            - **Paris (75)**: 13,833 accidents - highest volume, but only 0.4% fatality rate (urban speeds protect)
+            - **Rhône (69 - Lyon)**: 2,782 accidents - 2nd largest city, 1.6% fatality rate
+            - **Gironde (33 - Bordeaux)**: 2,532 accidents - 3rd urban center, 2.8% fatality rate
+            
+            **Fatality rate leaders (rural danger)**:
+            - **Tarn (81)**: 14.4% fatality rate - highest in France (only 202 accidents but very deadly)
+            - **Ardèche (07)**: 13.6% fatality rate - mountainous terrain, high speeds
+            - **Charente (16)**: 13.2% fatality rate - rural roads, less infrastructure
+            
+            **The Urban-Rural paradox**:
+            - Cities = **high volume, low fatality** (many cyclists, slow speeds, better infrastructure)
+            - Rural = **low volume, high fatality** (fewer cyclists, fast roads, no bike lanes)
+            
+            👉 Use filters above to explore specific departments, years, or severity levels.
+            """)
 
     # ========================================================================
     # DEMOGRAPHICS ANALYSIS

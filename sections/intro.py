@@ -97,7 +97,11 @@ def render(metadata):
         - What role do lighting conditions play in accident severity?
         - How does weather affect cycling safety?
         - Do bike lanes and infrastructure actually protect cyclists?
-        - Which types of vehicles pose the greatest threat?
+                    
+        **Geographic patterns:**
+        - Which departments are most dangerous for cyclists?
+        - Are accidents more severe in urban or rural areas?
+        - Where are the "black spots" requiring intervention?
         
         **Victim profiles:**
         - Who are the most vulnerable cyclists (age, gender)?
@@ -200,7 +204,7 @@ def render(metadata):
     
     **Recommended flow:**
     1. **Data Quality** → Understand how the data was cleaned and its limitations
-    2. **Overview** → Get high-level trends and key metrics
+    2. **Overview** → Get high-level trends, key metrics, and geographic distribution map
     3. **Deep Dive Analysis** → Explore specific patterns in detail
     4. **Conclusions** → Review key insights and recommendations
     

@@ -235,7 +235,7 @@ elif section == "🔍 Data Quality":
     data_quality.render(df_raw, df)
 
 elif section == "📊 Overview":
-    overview.render(df_filtered, tables)
+    overview.render(df_filtered, tables, year_range, selected_departments, selected_gravity, selected_agglomeration)
 
 elif section == "🔬 Deep Dive Analysis":
     deep_dives.render(df_filtered, tables, year_range, selected_departments, selected_gravity, selected_agglomeration)

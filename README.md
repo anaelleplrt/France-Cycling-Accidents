@@ -23,11 +23,11 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 
 ## 🚀 Installation
 
-### Prerequisites
+**Prerequisites :**
 - Python 3.8+
 - pip
 
-### Setup Instructions
+**Setup Instructions :**
 
 **1. Extract the ZIP file**
 ```bash
@@ -47,6 +47,7 @@ streamlit run app.py (or, if needed : python -m streamlit run app.py)
 
 The app will open at `http://localhost:8501`
 
+---
 
 ### 📁 Project Structure
 ```text
@@ -97,6 +98,7 @@ Each record represents one person involved in a cycling accident requiring medic
 - **Interactive filters**: Year range, departments, severity, location type
 - **5 dashboard sections**: Introduction, Data Quality, Overview, Deep Dive Analysis, Conclusions
 - **10+ interactive visualizations**: Plotly charts, matplotlib waffle charts
+-  **Interactive map**: Department-level heatmap
 - **Performance optimized**: `@st.cache_data` on all data operations
 - **Responsive design**: Works on desktop and tablet
 
