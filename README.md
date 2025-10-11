@@ -23,11 +23,11 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 
 ## 🚀 Installation
 
-### Prerequisites
+**Prerequisites :**
 - Python 3.8+
 - pip
 
-### Setup Instructions
+**Setup Instructions :**
 
 **1. Extract the ZIP file**
 ```bash
@@ -47,6 +47,7 @@ streamlit run app.py (or, if needed : python -m streamlit run app.py)
 
 The app will open at `http://localhost:8501`
 
+---
 
 ### 📁 Project Structure
 ```text
