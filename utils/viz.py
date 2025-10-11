@@ -7,8 +7,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
-import folium
-from folium import plugins
 import streamlit as st
 
 
@@ -16,6 +14,7 @@ import streamlit as st
 # 1. TEMPORAL PATTERNS
 # ============================================================================
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
 def plot_hourly_distribution(df):
     """
     Dual-axis line chart: total accidents + fatality rate by hour.
@@ -74,6 +73,7 @@ def plot_hourly_distribution(df):
     return fig
 
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
 def plot_weekly_pattern(df):
     """
     Clean bar chart showing accident distribution by day of week.
@@ -93,7 +93,6 @@ def plot_weekly_pattern(df):
         lambda x: 'Weekend' if x in ['Saturday', 'Sunday'] else 'Weekday'
     )
     
-
     fig = go.Figure()
     
     fig.add_trace(go.Bar(
@@ -116,6 +115,7 @@ def plot_weekly_pattern(df):
     return fig
 
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
 def plot_seasonal_pattern(df):
     """
     Stacked bar chart showing seasonal distribution with severity.
@@ -154,11 +154,11 @@ def plot_seasonal_pattern(df):
     return fig
 
 
-
 # ============================================================================
 # 2. WEATHER & LIGHTING CONDITIONS
 # ============================================================================
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
 def plot_weather_lighting_conditions(df):
     """
     Grouped horizontal bar chart showing weather and lighting impact on fatal rate.
@@ -215,12 +215,11 @@ def plot_weather_lighting_conditions(df):
     return fig
 
 
-
-
 # ============================================================================
 # 3. INFRASTRUCTURE ANALYSIS
 # ============================================================================
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique (TRÈS IMPORTANT - C'EST LE PLUS LOURD !)
 def plot_waffle_situation(df):
     """
     Waffle chart showing accident distribution by road situation with severity.
@@ -349,6 +348,7 @@ def plot_waffle_situation(df):
     return fig
 
 
+@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
 def plot_bike_infrastructure_effectiveness(df):
     """
     Grouped bar chart comparing accidents WITH vs WITHOUT bike infrastructure.
@@ -397,6 +397,3 @@ def plot_bike_infrastructure_effectiveness(df):
     )
     
     return fig
-
-
-

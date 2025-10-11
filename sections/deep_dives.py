@@ -4,7 +4,6 @@ Detailed temporal, weather, and infrastructure analysis.
 """
 
 import streamlit as st
-from streamlit_folium import st_folium
 from utils import viz
 
 
