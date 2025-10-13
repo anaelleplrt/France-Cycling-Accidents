@@ -73,7 +73,7 @@ def plot_hourly_distribution(df):
     return fig
 
 
-@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
+@st.cache_data(show_spinner=False) 
 def plot_weekly_pattern(df):
     """
     Clean bar chart showing accident distribution by day of week.
@@ -115,7 +115,7 @@ def plot_weekly_pattern(df):
     return fig
 
 
-@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
+@st.cache_data(show_spinner=False) 
 def plot_seasonal_pattern(df):
     """
     Stacked bar chart showing seasonal distribution with severity.
@@ -158,7 +158,7 @@ def plot_seasonal_pattern(df):
 # 2. WEATHER & LIGHTING CONDITIONS
 # ============================================================================
 
-@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
+@st.cache_data(show_spinner=False) 
 def plot_weather_lighting_conditions(df):
     """
     Grouped horizontal bar chart showing weather and lighting impact on fatal rate.
@@ -219,7 +219,7 @@ def plot_weather_lighting_conditions(df):
 # 3. INFRASTRUCTURE ANALYSIS
 # ============================================================================
 
-@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique (TRÈS IMPORTANT - C'EST LE PLUS LOURD !)
+@st.cache_data(show_spinner=False) 
 def plot_waffle_situation(df):
     """
     Waffle chart showing accident distribution by road situation with severity.
@@ -248,7 +248,7 @@ def plot_waffle_situation(df):
     n_situations = len(situations)
     
     # Calculate grid layout
-    n_cols = 4  # 4 columns instead of 5 for better readability
+    n_cols = 3  
     n_rows = (n_situations + n_cols - 1) // n_cols  # Calculate needed rows
     
     # Create figure with subplots - larger size

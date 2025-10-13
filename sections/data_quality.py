@@ -18,7 +18,7 @@ def render(df_raw, df_clean):
         df_clean (pd.DataFrame): Cleaned and transformed dataset
     """
     
-    st.markdown("## 📋 Data Quality & Preparation")
+    st.title("📋 Data Quality & Preparation")
     
     st.markdown("""
     This section documents the data preparation process and validates the quality of the final dataset.

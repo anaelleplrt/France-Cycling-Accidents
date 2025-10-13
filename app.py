@@ -220,7 +220,7 @@ st.markdown("""
     <h1 style='font-size: 3.5rem; color: #1f77b4; margin-bottom: 0;'>
         🚴 Cycling Safety in France (2005-2023)
     </h1>
-    <p style='font-size: 1.5rem; color: #555; margin-top: 0.5rem; margin-bottom: 2rem;'>
+    <p style='font-size: 1.5rem; color: #555; margin-top: 0.5rem; margin-bottom: 1rem;'>
         Understanding bicycle accident patterns to improve cyclist safety
     </p>
 """, unsafe_allow_html=True)
@@ -239,6 +239,7 @@ elif section == "📊 Overview":
 
 elif section == "🔬 Deep Dive Analysis":
     deep_dives.render(df_filtered, tables, year_range, selected_departments, selected_gravity, selected_agglomeration)
+
 elif section == "💡 Conclusions":
     conclusions.render(df_filtered, tables)
 

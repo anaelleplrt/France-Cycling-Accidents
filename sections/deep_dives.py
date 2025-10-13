@@ -25,12 +25,15 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     This section explores in detail the temporal, weather, and infrastructure factors 
     that influence the severity of cycling accidents.
     """)
+
+    st.markdown("---")
+
     
     # ========================================================================
     # 1. TEMPORAL PATTERNS
     # ========================================================================
     
-    st.header("⏰ Temporal Patterns")
+    st.header("1. Temporal Patterns ⏰")
     
     st.markdown("""
     **Key Question**: When are cyclists most at risk?
@@ -48,6 +51,11 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     with st.container():
         fig_hourly = viz.plot_hourly_distribution(df_filtered)
         st.plotly_chart(fig_hourly, use_container_width=True)
+        st.caption("""
+        **Chart description**: Line chart showing hourly distribution of cycling accidents (blue line) 
+        and fatality rate percentage (red dashed line). X-axis shows hours (0-23), left Y-axis shows 
+        number of accidents, right Y-axis shows fatality rate.
+        """)
         
         # Calculate hourly stats
         hourly_stats = df_filtered.groupby('hour').agg(
@@ -89,11 +97,22 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     with col1:
         fig_weekly = viz.plot_weekly_pattern(df_filtered)
         st.plotly_chart(fig_weekly, use_container_width=True)
+        st.caption("""
+    **Chart description**: Bar chart showing accident distribution across days of week. Bars display total 
+    accident counts with values labeled above each bar.
+    """)
         
     
     with col2:
         fig_seasonal = viz.plot_seasonal_pattern(df_filtered)
         st.plotly_chart(fig_seasonal, use_container_width=True)
+        st.caption("""
+    **Chart description**: Stacked bar chart showing seasonal accident distribution segmented by severity. 
+    Four bars represent Spring, Summer, Autumn, and Winter. Each bar is color-coded: green (unharmed), 
+    yellow (minor injury), orange (hospitalized), red (killed).
+                   """
+        )
+
         st.caption("""
         💡 **Interactive features**: 
         - **Hover** over bars to see exact numbers for each severity level
@@ -170,17 +189,175 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # 2. WEATHER & LIGHTING CONDITIONS
     # ========================================================================
     
-    st.header("🌦️ Weather & Lighting Conditions")
+    st.header("2. Weather & Lighting Conditions🌦️")
     
     st.markdown("""
     **Key Question**: Under what conditions are accidents most fatale?
     """)
-    
-    with st.container():
-        fig_weather = viz.plot_weather_lighting_conditions(df_filtered)
-        st.plotly_chart(fig_weather, use_container_width=True)
+    # Check if severity filter is active
+    if selected_gravity and selected_gravity != ['All']:
+        st.warning(f"""
+        ⚠️ **Weather & Lighting analysis not available with severity filter active**
         
-    # Check if any filter is active
+        You have filtered for: **{', '.join(selected_gravity)}**
+        
+        This chart shows **fatality rates across different severities**, which cannot be calculated 
+        when filtering by specific severity levels. 
+        
+        To view this analysis, please set "Severity" filter back to "All".
+        """)
+
+    else : 
+        with st.container():
+            fig_weather = viz.plot_weather_lighting_conditions(df_filtered)
+            st.plotly_chart(fig_weather, use_container_width=True)
+            st.caption("""
+        **Chart description**: Horizontal grouped bar chart comparing fatality rates across weather and lighting 
+        conditions. Two bar groups: dark blue bars represent lighting conditions, light blue bars represent weather conditions. 
+        X-axis shows fatality rate percentage, Y-axis lists specific conditions (e.g., "Night without street lighting", 
+        "Strong wind - storm"). Bars are sorted by severity, with most dangerous conditions at the top. Values are 
+        labeled at the end of each bar.
+        """)
+            
+        # Check if any filter is active
+            filters_active = (
+                (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
+                (selected_departments is not None and selected_departments != ['All']) or
+                (selected_gravity is not None and selected_gravity != ['All']) or
+                (selected_agglomeration is not None and selected_agglomeration != 'All')
+            )
+            
+            if filters_active:
+                # ANALYSE DYNAMIQUE (quand filtres actifs)
+                lighting_stats = df_filtered.groupby('lighting').agg(
+                    total=('lighting', 'size'),
+                    fatal=('is_fatal', 'sum')
+                )
+                lighting_stats['fatal_rate'] = (lighting_stats['fatal'] / lighting_stats['total'] * 100).round(1)
+                
+                weather_stats = df_filtered.groupby('weather').agg(
+                    total=('weather', 'size'),
+                    fatal=('is_fatal', 'sum')
+                )
+                weather_stats['fatal_rate'] = (weather_stats['fatal'] / weather_stats['total'] * 100).round(1)
+                
+                worst_lighting = lighting_stats['fatal_rate'].idxmax()
+                worst_lighting_rate = lighting_stats['fatal_rate'].max()
+                worst_weather = weather_stats['fatal_rate'].idxmax()
+                worst_weather_rate = weather_stats['fatal_rate'].max()
+                
+                st.info(f"""
+                **📊 Analysis for filtered selection** ({len(df_filtered):,} accidents):
+                
+                **Lighting conditions**:
+                - Most dangerous: **{worst_lighting}** ({worst_lighting_rate:.1f}% fatality rate)
+                - Total accidents in worst lighting: {lighting_stats.loc[worst_lighting, 'total']:,}
+                
+                **Weather conditions**:
+                - Most dangerous: **{worst_weather}** ({worst_weather_rate:.1f}% fatality rate)
+                - Total accidents in worst weather: {weather_stats.loc[worst_weather, 'total']:,}
+                
+                💡 Use filters to explore specific conditions (year, department, etc.)
+                """)
+            else:
+                # ANALYSE GLOBALE (par défaut, sans filtres)
+                st.info("""
+                **💡Weather & Lighting Conditions Insights**:
+                
+                **Lighting is the dominant risk factor**:
+                - **Night without street lighting**: 16.7% fatality rate - **4.3x higher** than daylight (3.8%)
+                - **Night with lighting off**: 6.0% fatality rate - still dangerous
+                - **Twilight/Dawn**: 3.8% - transition period creates visibility issues
+                - **Night with lighting on**: Only 1.9% - infrastructure makes a difference
+                
+                **Weather amplifies the risk**:
+                - **Strong wind/storm**: 13.9% fatality rate - destabilizes cyclists
+                - **Fog/smoke**: 8.8% - severely reduced visibility
+                - **Dazzling weather**: 8.4% - sun glare impairs vision
+                - **Heavy rain**: 4.7% - wet surfaces + reduced visibility
+                - **Normal weather**: 3.8% baseline - but still represents most accidents
+
+                """)
+    
+    st.markdown("---")
+    
+    # ========================================================================
+    # 3. INFRASTRUCTURE ANALYSIS
+    # ========================================================================
+    
+    st.header("3. Infrastructure Analysis🛣️")
+    
+    st.markdown("""
+    **Key Question**: Does cycling infrastructure truly protect cyclists?
+    """)
+
+    # Check if severity filter is active
+    if selected_gravity and selected_gravity != ['All']:
+        st.warning(f"""
+        ⚠️ **Road situation waffle chart not available with severity filter active**
+        
+        You have filtered for: **{', '.join(selected_gravity)}**
+        
+        The waffle chart shows **severity distribution** (colors = different severity levels), 
+        which cannot be displayed when filtering by specific severity levels.
+        
+        To view this analysis, please set "Severity" filter back to "All".
+        """)
+        
+        # on garde le bar chart infrastructure (il fonctionne avec le filtre severity)
+        st.subheader("Cycling Infrastructure Effectiveness")
+        fig_infra = viz.plot_bike_infrastructure_effectiveness(df_filtered)
+        st.plotly_chart(fig_infra, use_container_width=True)
+        
+        st.caption("""
+        **Chart description**: Grouped bar chart comparing accident severity between accidents with 
+        and without cycling infrastructure.
+        """)
+        
+        st.info("""
+        💡 The bar chart above still works with severity filters and shows volume comparison.
+        """)
+
+    else : 
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            # Waffle chart - Road situation
+            st.subheader("Road Situation Distribution")
+            fig_waffle = viz.plot_waffle_situation(df_filtered)
+            st.pyplot(fig_waffle)
+            
+            st.caption("""
+        **💡 How to read the waffle chart**: Each 10×10 grid represents 100% of accidents for that road situation. Each square represents 1% of accidents in that situation.
+        
+        Colors show severity distribution: 🟢 Green (unharmed) → 🟡 Yellow (minor) → 🟠 Orange (hospitalized) → 🔴 Red (killed).
+        
+        **Key insight**: Compare the color patterns - more green = safer infrastructure.
+        """)
+        
+        with col2:
+            # Bar chart - Infrastructure effectiveness
+            st.subheader("Cycling Infrastructure Effectiveness")
+            fig_infra = viz.plot_bike_infrastructure_effectiveness(df_filtered)
+            st.plotly_chart(fig_infra, use_container_width=True)
+            
+            st.caption("""
+            **Chart description**: Grouped bar chart comparing accident severity between two infrastructure types: 
+            "With cycling infrastructure" and "Without cycling infrastructure". Four severity categories are shown 
+            as separate bars for each type: green (unharmed), yellow (minor injury), orange (hospitalized), red (killed). 
+            """)
+
+            st.caption("""
+            💡 **Interactive features**: 
+            - **Click on legend items** (Hospitalized, Killed, etc.) to show/hide categories
+            - **Double-click legend** to isolate a single severity level
+            """)
+        
+    # Detailed analysis below the charts
+        st.markdown("---")
+
+        
+        # Check if filters are active
         filters_active = (
             (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
             (selected_departments is not None and selected_departments != ['All']) or
@@ -189,232 +366,129 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         )
         
         if filters_active:
-            # ANALYSE DYNAMIQUE (quand filtres actifs)
-            lighting_stats = df_filtered.groupby('lighting').agg(
-                total=('lighting', 'size'),
-                fatal=('is_fatal', 'sum')
-            )
-            lighting_stats['fatal_rate'] = (lighting_stats['fatal'] / lighting_stats['total'] * 100).round(1)
+            # DYNAMIC ANALYSIS (when filters active)
+            # Calculate severity distribution by situation
+            situation_severity = df_filtered.groupby(['situation', 'gravity']).size().unstack(fill_value=0)
+            situation_totals = situation_severity.sum(axis=1)
+            situation_pct = situation_severity.div(situation_totals, axis=0) * 100
             
-            weather_stats = df_filtered.groupby('weather').agg(
-                total=('weather', 'size'),
-                fatal=('is_fatal', 'sum')
-            )
-            weather_stats['fatal_rate'] = (weather_stats['fatal'] / weather_stats['total'] * 100).round(1)
+            # Calculate "danger score" (killed + hospitalized %)
+            if 'Killed' in situation_pct.columns and 'Hospitalized' in situation_pct.columns:
+                situation_pct['danger_score'] = situation_pct['Killed'] + situation_pct['Hospitalized']
+            elif 'Killed' in situation_pct.columns:
+                situation_pct['danger_score'] = situation_pct['Killed']
+            else:
+                situation_pct['danger_score'] = 0
+                
+            # Calculate "safety score" (unharmed %)
+            if 'Unharmed' in situation_pct.columns:
+                situation_pct['safety_score'] = situation_pct['Unharmed']
+            else:
+                situation_pct['safety_score'] = 0
             
-            worst_lighting = lighting_stats['fatal_rate'].idxmax()
-            worst_lighting_rate = lighting_stats['fatal_rate'].max()
-            worst_weather = weather_stats['fatal_rate'].idxmax()
-            worst_weather_rate = weather_stats['fatal_rate'].max()
+            most_dangerous = situation_pct['danger_score'].idxmax()
+            danger_score = situation_pct['danger_score'].max()
+            safest = situation_pct['safety_score'].idxmax()
+            safety_score = situation_pct['safety_score'].max()
+            
+            # Infrastructure comparison
+            infra_stats = df_filtered.groupby('has_bike_infrastructure').agg(
+                total=('has_bike_infrastructure', 'size')
+            )
+            with_infra = infra_stats.loc[True, 'total'] if True in infra_stats.index else 0
+            without_infra = infra_stats.loc[False, 'total'] if False in infra_stats.index else 0
             
             st.info(f"""
-            **📊 Analysis for filtered selection** ({len(df_filtered):,} accidents):
+            **💡 Infrastructure Insight** ({len(df_filtered):,} accidents in selection):
             
-            **Lighting conditions**:
-            - Most dangerous: **{worst_lighting}** ({worst_lighting_rate:.1f}% fatality rate)
-            - Total accidents in worst lighting: {lighting_stats.loc[worst_lighting, 'total']:,}
+            **Waffle chart severity patterns**:
+            - **Most red/orange (most dangerous)**: **{most_dangerous}**
+            - {danger_score:.1f}% killed or hospitalized
+            - Highest proportion of severe accidents
             
-            **Weather conditions**:
-            - Most dangerous: **{worst_weather}** ({worst_weather_rate:.1f}% fatality rate)
-            - Total accidents in worst weather: {weather_stats.loc[worst_weather, 'total']:,}
+            - **Most green (safest)**: **{safest}**
+            - {safety_score:.1f}% unharmed
+            - Best protection for cyclists
             
-            💡 Use filters to explore specific conditions (year, department, etc.)
-            """)
+            **Infrastructure volume**:
+            - With cycling infrastructure: {with_infra:,} accidents
+            - Without cycling infrastructure: {without_infra:,} accidents
+            - **Risk multiplier**: {(without_infra/with_infra if with_infra > 0 else 0):.1f}x more accidents occur without infrastructure
+            
+            💡 **Critical insight**: Areas without infrastructure for bike have **{(without_infra/with_infra if with_infra > 0 else 0):.0f} times more accidents**.
+            This proves the urgent need for protected cycling infrastructure.""")
+            
         else:
-            # ANALYSE GLOBALE (par défaut, sans filtres)
             st.info("""
-            **💡Weather & Lighting Conditions Insights**:
-            
-            **Lighting is the dominant risk factor**:
-            - **Night without street lighting**: 16.7% fatality rate - **4.3x higher** than daylight (3.8%)
-            - **Night with lighting off**: 6.0% fatality rate - still dangerous
-            - **Twilight/Dawn**: 3.8% - transition period creates visibility issues
-            - **Night with lighting on**: Only 1.9% - infrastructure makes a difference
-            
-            **Weather amplifies the risk**:
-            - **Strong wind/storm**: 13.9% fatality rate - destabilizes cyclists
-            - **Fog/smoke**: 8.8% - severely reduced visibility
-            - **Dazzling weather**: 8.4% - sun glare impairs vision
-            - **Heavy rain**: 4.7% - wet surfaces + reduced visibility
-            - **Normal weather**: 3.8% baseline - but still represents most accidents
-
-            """)
-    
-    st.markdown("---")
-    
-    # ========================================================================
-    # 3. INFRASTRUCTURE ANALYSIS
-    # ========================================================================
-    
-    st.header("🛣️ Infrastructure Analysis")
-    
-    st.markdown("""
-    **Key Question**: Does cycling infrastructure truly protect cyclists?
+            **💡 Infrastructure Insights**:
     """)
-    
-    # Two columns for the infrastructure analysis
-    col1, col2 = st.columns([1.5, 1])
-    
-    with col1:
-        # Waffle chart - Road situation
-        st.subheader("Road Situation Distribution")
-        fig_waffle = viz.plot_waffle_situation(df_filtered)
-        st.pyplot(fig_waffle)
-        
-        st.caption("""
-    **💡 How to read the waffle chart**: Each 10×10 grid represents 100% of accidents for that road situation. Each square represents 1% of accidents in that situation.
-    
-    Colors show severity distribution: 🟢 Green (unharmed) → 🟡 Yellow (minor) → 🟠 Orange (hospitalized) → 🔴 Red (killed).
-    
-    **Key insight**: Compare the color patterns - more green = safer infrastructure.
-    """)
-    
-    with col2:
-        # Bar chart - Infrastructure effectiveness
-        st.subheader("Cycling Infrastructure Effectiveness")
-        fig_infra = viz.plot_bike_infrastructure_effectiveness(df_filtered)
-        st.plotly_chart(fig_infra, use_container_width=True)
-        
-        st.caption("""
-        💡 Global comparison: presence vs absence of cycling infrastructure.
-        """)
-    
-# Detailed analysis below the charts
-    st.markdown("---")
+            # GLOBAL DETAILED ANALYSIS (no filters)
+            col1, col2 = st.columns(2)
 
-    
-    # Check if filters are active
-    filters_active = (
-        (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
-        (selected_departments is not None and selected_departments != ['All']) or
-        (selected_gravity is not None and selected_gravity != ['All']) or
-        (selected_agglomeration is not None and selected_agglomeration != 'All')
-    )
-    
-    if filters_active:
-        # DYNAMIC ANALYSIS (when filters active)
-        # Calculate severity distribution by situation
-        situation_severity = df_filtered.groupby(['situation', 'gravity']).size().unstack(fill_value=0)
-        situation_totals = situation_severity.sum(axis=1)
-        situation_pct = situation_severity.div(situation_totals, axis=0) * 100
-        
-        # Calculate "danger score" (killed + hospitalized %)
-        if 'Killed' in situation_pct.columns and 'Hospitalized' in situation_pct.columns:
-            situation_pct['danger_score'] = situation_pct['Killed'] + situation_pct['Hospitalized']
-        elif 'Killed' in situation_pct.columns:
-            situation_pct['danger_score'] = situation_pct['Killed']
-        else:
-            situation_pct['danger_score'] = 0
-            
-        # Calculate "safety score" (unharmed %)
-        if 'Unharmed' in situation_pct.columns:
-            situation_pct['safety_score'] = situation_pct['Unharmed']
-        else:
-            situation_pct['safety_score'] = 0
-        
-        most_dangerous = situation_pct['danger_score'].idxmax()
-        danger_score = situation_pct['danger_score'].max()
-        safest = situation_pct['safety_score'].idxmax()
-        safety_score = situation_pct['safety_score'].max()
-        
-        # Infrastructure comparison
-        infra_stats = df_filtered.groupby('has_bike_infrastructure').agg(
-            total=('has_bike_infrastructure', 'size')
-        )
-        with_infra = infra_stats.loc[True, 'total'] if True in infra_stats.index else 0
-        without_infra = infra_stats.loc[False, 'total'] if False in infra_stats.index else 0
-        
-        st.info(f"""
-        **💡 Infrastructure Insight** ({len(df_filtered):,} accidents in selection):
-        
-        **Waffle chart severity patterns**:
-        - **Most red/orange (most dangerous)**: **{most_dangerous}**
-          - {danger_score:.1f}% killed or hospitalized
-          - Highest proportion of severe accidents
-        
-        - **Most green (safest)**: **{safest}**
-          - {safety_score:.1f}% unharmed
-          - Best protection for cyclists
-        
-        **Infrastructure volume**:
-        - With cycling infrastructure: {with_infra:,} accidents
-        - Without cycling infrastructure: {without_infra:,} accidents
-        - **Risk multiplier**: {(without_infra/with_infra if with_infra > 0 else 0):.1f}x more accidents occur without infrastructure
-        
-        💡 **Critical insight**: Areas without infrastructure for bike have **{(without_infra/with_infra if with_infra > 0 else 0):.0f} times more accidents**.
-        This proves the urgent need for protected cycling infrastructure.""")
-        
-    else:
-        st.info("""
-        **💡 Infrastructure Insights**:
-""")
-        # GLOBAL DETAILED ANALYSIS (no filters)
-        col1, col2 = st.columns(2)
+            with col1:
+                st.info("""                    
+                **Road situation severity comparison**:
+                - **On shoulder**: Deadliest pattern  
+                    - ~15-20% red/dark orange squares at top = high killed/hospitalized rate  
+                    - Narrow space + fast vehicles = severe impacts  
 
-        with col1:
-            st.info("""                    
-            **Road situation severity comparison**:
-            - **On shoulder**: Deadliest pattern  
-                - ~15-20% red/dark orange squares at top = high killed/hospitalized rate  
-                - Narrow space + fast vehicles = severe impacts  
+                - **On roadway**: High severity  
+                    - ~10-15% red/orange at top = significant severe accidents  
+                    - Most common situation (83% of all accidents)  
+                    - Mixing with car traffic = dangerous  
 
-            - **On roadway**: High severity  
-                - ~10-15% red/orange at top = significant severe accidents  
-                - Most common situation (83% of all accidents)  
-                - Mixing with car traffic = dangerous  
+                - **On bike path**: Safest pattern  
+                    - ~15-20% green squares at bottom = high unharmed rate  
+                    - Only ~5-8% red/orange = low severe accident rate  
+                    - Physical separation protects cyclists  
+                        
+                - **On sidewalk**: Moderate severity  
+                    - ~10-15% green squares = some protection  
+                    - ~8-10% red/orange = moderate severe accidents  
+                    - Better than roadway, worse than bike path  
 
-            - **On bike path**: Safest pattern  
-                - ~15-20% green squares at bottom = high unharmed rate  
-                - Only ~5-8% red/orange = low severe accident rate  
-                - Physical separation protects cyclists  
-                    
-            - **On sidewalk**: Moderate severity  
-                - ~10-15% green squares = some protection  
-                - ~8-10% red/orange = moderate severe accidents  
-                - Better than roadway, worse than bike path  
+                """)
 
-            """)
-
-        with col2:
-            st.info("""
-            **Infrastructure effectiveness** (from bar chart):  
-            
-            - **Volume comparison**:  
-                - WITHOUT infrastructure: 78,436 accidents (98.0%)  
-                - WITH infrastructure: 1,586 accidents (2.0%)  
-            
-            - **Severity distribution**:  
-                - WITH: Lower hospitalization rate (24.5% vs 32.7%)  
-                - WITHOUT: More severe outcomes overall  
-
-            **Key takeaway**: 
-            - Protected bike lanes don't just reduce accident volume – they also reduce severity.  
-            - A cyclist on a bike path has **50x less chance** of being in an accident than on the roadway.
-           
-            
-            Cycling infrastructure that is physically separated from motor vehicle traffic is the best way to **drastically reduce the severity of accidents**. Investment in these facilities is cost-effective both in human and economic terms (avoided healthcare costs).
-
-            """)
-
-
-        st.success("""
-        **✅ Evidence-Based Policy Recommendations**:
+            with col2:
+                st.info("""
+                **Infrastructure effectiveness** (from bar chart):  
                 
-        **Why shoulder cycling is deadly** (highest red proportion in waffle):
-        - Vehicles traveling 70-130 km/h on highways
-        - No physical barrier between cyclist and traffic
-        - Emergency lane = false sense of security
-        
-        **Why bike paths and sidewalk work** (most green squares):
-        - Physical separation eliminates car-bike collisions
-        - Lower speeds (typically 20-30 km/h)
-        - Dedicated space reduces stress and sudden movements
-        
-        **Immediate actions**:
-        1. **Ban cyclists from highway shoulders** - build alternative routes
-        2. **Convert painted bike lanes to protected lanes** - add physical barriers
-        3. **Prioritize bike infrastructure on commuter routes** - where 83% of accidents occur
-        """)
+                - **Volume comparison**:  
+                    - WITHOUT infrastructure: 78,436 accidents (98.0%)  
+                    - WITH infrastructure: 1,586 accidents (2.0%)  
+                
+                - **Severity distribution**:  
+                    - WITH: Lower hospitalization rate (24.5% vs 32.7%)  
+                    - WITHOUT: More severe outcomes overall  
+
+                **Key takeaway**: 
+                - Protected bike lanes don't just reduce accident volume – they also reduce severity.  
+                - A cyclist on a bike path has **50x less chance** of being in an accident than on the roadway.
+            
+                
+                Cycling infrastructure that is physically separated from motor vehicle traffic is the best way to **drastically reduce the severity of accidents**. Investment in these facilities is cost-effective both in human and economic terms (avoided healthcare costs).
+
+                """)
+
+
+            st.success("""
+            **✅ Evidence-Based Policy Recommendations**:
+                    
+            **Why shoulder cycling is deadly** (highest red proportion in waffle):
+            - Vehicles traveling 70-130 km/h on highways
+            - No physical barrier between cyclist and traffic
+            - Emergency lane = false sense of security
+            
+            **Why bike paths and sidewalk work** (most green squares):
+            - Physical separation eliminates car-bike collisions
+            - Lower speeds (typically 20-30 km/h)
+            - Dedicated space reduces stress and sudden movements
+            
+            **Immediate actions**:
+            1. **Ban cyclists from highway shoulders** - build alternative routes
+            2. **Convert painted bike lanes to protected lanes** - add physical barriers
+            3. **Prioritize bike infrastructure on commuter routes** - where 83% of accidents occur
+            """)
     
 
     # ========================================================================
@@ -422,7 +496,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # ========================================================================
     
     st.markdown("---")
-    st.header("⚡ Quick Insights Summary")
+    st.header("💡 Key Takeaways from Deep dive Analysis :")
     
     col1, col2, col3 = st.columns(3)
     
@@ -453,5 +527,6 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     st.info("""
     **🎯**: The data is clear - **protected bike lanes save lives**. 
     Night lighting, separated infrastructure, and rush hour safety measures are the three pillars 
-    for reducing cyclist fatalities. See the Conclusions section for detailed policy recommendations.
+    for reducing cyclist fatalities. 
+    See the Conclusions section for detailed policy recommendations.
     """)

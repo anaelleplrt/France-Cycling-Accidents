@@ -18,7 +18,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         tables (dict): Pre-aggregated tables from create_aggregated_tables()
     """
     
-    st.markdown("## 📊 Overview: Cycling Accidents in France")
+    st.title("📊 Overview: Cycling Accidents in France")
     
     st.markdown("""
     This section provides a view of cycling accident patterns across France 
@@ -102,8 +102,8 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
 
     st.info("""
     💡 **Interactive chart tips:**
-    - 🖱️ **Hover** over the bars to see detailed numbers
-    - 👆 **Click** on severity levels in the legend to show/hide them
+    - **Hover** over the bars to see detailed numbers
+    - **Click** on severity levels in the legend to show/hide them
     """)
 
     # Filter only valid French department codes (needed for urban/rural analysis)
@@ -444,7 +444,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 📊 Age Distribution")
+        st.markdown("#### 📊 Age Distribution :")
         # Age distribution by gravity
         age_data = df_filtered.groupby(['age_group', 'gravity']).size().reset_index(name='count')
 
@@ -495,7 +495,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         
         
     with col2:
-        st.markdown("#### 👫 Gender Distribution")
+        st.markdown("#### 👫 Gender Distribution :")
         
         # Gender distribution by gravity
         gender_data = df_filtered.groupby(['gender', 'gravity']).size().reset_index(name='count')

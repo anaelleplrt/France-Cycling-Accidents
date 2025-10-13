@@ -17,21 +17,17 @@ def render(df_filtered, tables):
     tables : dict
         Dictionary containing reference tables
     """
-    
-    st.title("🎯 Conclusions")
-    
+        
     st.markdown("""
     After analyzing **79,965 cycling accidents** from 2005 to 2023, clear patterns emerge 
     that can guide effective safety policies.
     """)
     
     st.markdown("---")
-    
     # ========================================================================
     # MAIN FINDINGS
     # ========================================================================
-    
-    st.header("📊 Main Findings")
+    st.header("📊 Main Findings :")
     
     st.subheader("1️⃣ Volume & Trends (Overview)")
     
@@ -75,13 +71,13 @@ def render(df_filtered, tables):
     # KEY TAKEAWAYS
     # ========================================================================
     
-    st.header("💡 Key Takeaways")
+    st.header("💡 Key Takeaways :")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
-        ### What Works
+        ### What Works :
         
         ✅ **Protected bike lanes**
         - Physical separation reduces both frequency and severity
@@ -95,7 +91,7 @@ def render(df_filtered, tables):
     
     with col2:
         st.markdown("""
-        ### Risk Factors
+        ### Risk Factors :
         
         ⚠️ **Night without lighting**
         - 4.3x more deadly than daylight
@@ -195,7 +191,7 @@ def render(df_filtered, tables):
     
     These aren't opinions - they're patterns from 80,000+ accidents over 18 years.
     
-    **The question isn't whether we should invest in cycling safety - it's how quickly we can do it.**
+    **The question isn't whether we should invest in cycling safety, it's how quickly we can do it.**
     """)
     
     st.markdown("---")
@@ -219,8 +215,7 @@ def render(df_filtered, tables):
         - Python for data processing
         - Streamlit for dashboard
         - Plotly for interactive visualizations
-        - Folium for mapping
-        
+                            
         **Data Cleaning:**
         - Removed invalid/incomplete records
         - Decoded categorical variables
