@@ -14,7 +14,7 @@ import streamlit as st
 # 1. TEMPORAL PATTERNS
 # ============================================================================
 
-@st.cache_data(show_spinner=False)  # ← AJOUT : Cache le graphique
+@st.cache_data(show_spinner=False)  
 def plot_hourly_distribution(df):
     """
     Dual-axis line chart: total accidents + fatality rate by hour.

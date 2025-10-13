@@ -15,10 +15,10 @@ def render(metadata):
     """
     
     # ========================================================================
-    # HOOK - Grab attention with a compelling statement
+    # HOOK
     # ========================================================================
     
-    st.markdown("## 🚴 Why Cycling Safety Matters")
+    st.markdown("## 🚴 Why Cycling Safety Matters ?")
     
     col1, col2, col3 = st.columns(3)
     
@@ -27,7 +27,7 @@ def render(metadata):
         <div class='kpi-container'>
             <h3 style='color: #e74c3c; margin: 0;'>80,000+</h3>
             <p style='margin: 0;'>Cyclists injured</p>
-            <p style='font-size: 0.9rem; color: #777;'>2005-2022</p>
+            <p style='font-size: 0.9rem; color: #777;'>2005-2023</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -88,7 +88,6 @@ def render(metadata):
         **Geographic patterns:**
         - Which departments are most dangerous for cyclists?
         - Are accidents more severe in urban or rural areas?
-        - Where are the "black spots" requiring intervention?
         """)
     
     with col2:
@@ -97,15 +96,11 @@ def render(metadata):
         - What role do lighting conditions play in accident severity?
         - How does weather affect cycling safety?
         - Do bike lanes and infrastructure actually protect cyclists?
-                    
-        **Geographic patterns:**
-        - Which departments are most dangerous for cyclists?
-        - Are accidents more severe in urban or rural areas?
-        - Where are the "black spots" requiring intervention?
         
         **Victim profiles:**
-        - Who are the most vulnerable cyclists (age, gender)?
-        - How does trip purpose correlate with accident risk?
+        - Which age groups are most affected by cycling accidents?
+        - Which age groups face the highest fatality rates?
+        - Are there gender differences in accident severity and volume?
         """)
     
     # ========================================================================
@@ -139,18 +134,14 @@ def render(metadata):
         - Urban planners
         - Transport authorities
         - Safety regulators
-        
-        *Use insights to prioritize infrastructure investments*
         """)
     
     with col2:
         st.markdown("""
         **🚴 Cycling Advocates**
-        - NGOs & associations
+        - ONGs & associations
         - Community groups
         - Safety campaigners
-        
-        *Leverage data to advocate for safer cycling conditions*
         """)
     
     with col3:
@@ -159,8 +150,6 @@ def render(metadata):
         - Transport researchers
         - Data analysts
         - Students
-        
-        *Explore patterns and generate hypotheses*
         """)
     
     # ========================================================================
@@ -201,8 +190,16 @@ def render(metadata):
     - 📖 Navigate between sections
     - 🎛️ Apply filters (year range, departments, severity, location type)
     - ℹ️ View dataset information
+                """)
     
-    **Recommended flow:**
+    st.info("""
+    For the filter 'location type' : 
+    - “In built-up area” → Analyzes only accidents in cities (urban)
+    - “Outside built-up area” → Analyzes only accidents outside city (in rural areas)
+            """)
+                
+    st.markdown("""
+    **Recommended flow between sections :**
     1. **Data Quality** → Understand how the data was cleaned and its limitations
     2. **Overview** → Get high-level trends, key metrics, and geographic distribution map
     3. **Deep Dive Analysis** → Explore specific patterns in detail

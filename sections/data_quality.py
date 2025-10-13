@@ -129,7 +129,7 @@ def render(df_raw, df_clean):
     with col3:
         st.metric(
             label="🧮 Calculated Features",
-            value="7 columns",
+            value="6 columns",
             help="Derived analytical variables"
         )
     
@@ -144,7 +144,7 @@ def render(df_raw, df_clean):
         We **replaced** these encoded columns with **human-readable labels** (e.g., "Daylight", "Twilight") 
         to make the data intuitive.
         
-        ✅ **Transformation:** `grav` (1,2,3,4) → `gravity` ("Unharmed", "Killed", "Hospitalized", "Minor injury")
+        **Example of Transformation:** `grav` (1,2,3,4) → `gravity` ("Unharmed", "Killed", "Hospitalized", "Minor injury")
         """)
         
         decoded_cols = pd.DataFrame({
@@ -194,7 +194,7 @@ def render(df_raw, df_clean):
         """)
         
         # Gravity mapping
-        with st.expander("🩹 **Gravity (grav)** - Injury Severity"):
+        with st.expander("**Gravity (grav)** - Injury Severity"):
             st.code("""
 GRAVITY_DICT = {
     1: 'Unharmed',
@@ -206,7 +206,7 @@ GRAVITY_DICT = {
             st.caption("Describes the severity of injuries sustained by the victim.")
         
         # Lighting mapping
-        with st.expander("💡 **Lighting (lum)** - Light Conditions"):
+        with st.expander("**Lighting (lum)** - Light Conditions"):
             st.code("""
 LIGHTING_DICT = {
     1: 'Daylight',
@@ -219,7 +219,7 @@ LIGHTING_DICT = {
             st.caption("Describes lighting conditions at the time of the accident.")
         
         # Weather mapping
-        with st.expander("🌦️ **Weather (atm)** - Atmospheric Conditions"):
+        with st.expander("**Weather (atm)** - Atmospheric Conditions"):
             st.code("""
 WEATHER_DICT = {
     1: 'Normal',
@@ -236,7 +236,7 @@ WEATHER_DICT = {
             st.caption("Describes weather conditions during the accident.")
         
         # Agglomeration mapping
-        with st.expander("🏙️ **Agglomeration (agg)** - Urban Context"):
+        with st.expander("**Agglomeration (agg)** - Urban Context"):
             st.code("""
 AGGLOMERATION_DICT = {
     1: 'Outside built-up area',
@@ -246,7 +246,7 @@ AGGLOMERATION_DICT = {
             st.caption("Indicates whether the accident occurred in an urban or rural area.")
         
         # Intersection mapping
-        with st.expander("🔀 **Intersection (int)** - Intersection Type"):
+        with st.expander("**Intersection (int)** - Intersection Type"):
             st.code("""
 INTERSECTION_DICT = {
     1: 'Outside intersection',
@@ -263,7 +263,7 @@ INTERSECTION_DICT = {
             st.caption("Describes the type of intersection where the accident occurred.")
         
         # Road category mapping
-        with st.expander("🛣️ **Road Category (catr)** - Type of Road"):
+        with st.expander("**Road Category (catr)** - Type of Road"):
             st.code("""
 ROAD_CATEGORY_DICT = {
     1: 'Highway',
@@ -278,7 +278,7 @@ ROAD_CATEGORY_DICT = {
             st.caption("Indicates the administrative category of the road.")
         
         # Surface condition mapping
-        with st.expander("🌧️ **Surface Condition (surf)** - Road Surface"):
+        with st.expander("**Surface Condition (surf)** - Road Surface"):
             st.code("""
 SURFACE_DICT = {
     1: 'Normal',
@@ -295,7 +295,7 @@ SURFACE_DICT = {
             st.caption("Describes the condition of the road surface.")
         
         # Infrastructure mapping
-        with st.expander("🚴 **Infrastructure (infra)** - Cycling Infrastructure"):
+        with st.expander("**Infrastructure (infra)** - Cycling Infrastructure"):
             st.code("""
 INFRASTRUCTURE_DICT = {
     0: 'Without infrastructure',
@@ -308,7 +308,7 @@ INFRASTRUCTURE_DICT = {
             st.caption("Indicates the presence and type of cycling infrastructure.")
         
         # Situation mapping
-        with st.expander("📍 **Situation (situ)** - Position on Road"):
+        with st.expander("**Situation (situ)** - Position on Road"):
             st.code("""
 SITUATION_DICT = {
     -1: 'Not specified',
@@ -325,7 +325,7 @@ SITUATION_DICT = {
             st.caption("Describes where the cyclist was positioned on the road.")
         
         # Gender mapping
-        with st.expander("👤 **Gender (sexe)** - Victim Gender"):
+        with st.expander("**Gender (sexe)** - Victim Gender"):
             st.code("""
 GENDER_DICT = {
     1: 'Male',
@@ -335,7 +335,7 @@ GENDER_DICT = {
             st.caption("Gender of the accident victim.")
         
         # Trip purpose mapping
-        with st.expander("🎯 **Trip Purpose (trajet)** - Reason for Trip"):
+        with st.expander("**Trip Purpose (trajet)** - Reason for Trip"):
             st.code("""
 TRIP_PURPOSE_DICT = {
     0: 'Not specified',
@@ -350,7 +350,7 @@ TRIP_PURPOSE_DICT = {
             st.caption("Indicates the purpose of the trip when the accident occurred.")
         
         # Collision type mapping
-        with st.expander("💥 **Collision Type (col)** - Type of Collision"):
+        with st.expander("**Collision Type (col)** - Type of Collision"):
             st.code("""
 COLLISION_TYPE_DICT = {
     1: 'Two vehicles - front',
@@ -365,7 +365,7 @@ COLLISION_TYPE_DICT = {
             st.caption("Describes how the collision occurred.")
         
         st.success("""
-        ✅ **All mappings are based on official BAAC documentation** provided by the 
+        **All mappings are based on official BAAC documentation** provided by the 
         French Road Safety Observatory (ONISR). This ensures accuracy and consistency 
         with national standards.
         """)
@@ -467,15 +467,12 @@ COLLISION_TYPE_DICT = {
         st.metric(
             label="🗑️ Rows Removed",
             value=f"{rows_removed:,}",
-            delta=f"-{removal_rate:.1f}%",
-            delta_color="inverse"
         )
     
     with col2:
         st.metric(
             label="✅ Rows Kept",
-            value=f"{len(df_clean):,}",
-            delta=f"{100-removal_rate:.1f}%"
+            value=f"{len(df_clean):,}"
         )
     
     with col3:
@@ -487,11 +484,11 @@ COLLISION_TYPE_DICT = {
     
     st.markdown("""
     **Cleaning rules applied:**
-    - ❌ Removed rows with missing year
-    - ❌ Removed rows with missing gravity information
-    - ❌ Removed rows with invalid years (< 2005 or > 2023)
-    - ❌ Removed rows with missing dates
-    - ❌ Removed rows with invalid ages (< 0 or > 120)
+    - Removed rows with missing year
+    - Removed rows with missing gravity information
+    - Removed rows with invalid years (< 2005 or > 2023)
+    - Removed rows with missing dates
+    - Removed rows with invalid ages (< 0 or > 120)
     """)
     
     # ========================================================================
@@ -515,14 +512,14 @@ COLLISION_TYPE_DICT = {
     # Validation table
     validation_checks = pd.DataFrame({
         'Validation Check': [
-            '✅ No duplicate rows',
-            '✅ Temporal coverage complete',
-            '✅ Valid date ranges',
-            '✅ Valid department codes',
-            '✅ Categorical variables decoded',
-            '✅ Hour values logical (0-23)',
-            '✅ Age values reasonable (0-120)',
-            '✅ No unexpected negative values'
+            'No duplicate rows',
+            'Temporal coverage complete',
+            'Valid date ranges',
+            'Valid department codes',
+            'Categorical variables decoded',
+            'Hour values logical (0-23)',
+            'Age values reasonable (0-120)',
+            'No unexpected negative values'
         ],
         'Result': [
             f'{len(df_clean):,} unique records',
@@ -530,9 +527,9 @@ COLLISION_TYPE_DICT = {
             '2005-2023',
             f'{dept_count} departments',
             '12 categorical variables successfully decoded',
-            f'Range: {int(df_clean["hour"].min())}-{int(df_clean["hour"].max())} ✓',
-            f'Range: {int(df_clean["age"].min()):.0f}-{int(df_clean["age"].max()):.0f} years ✓',
-            'All numeric fields validated ✓'
+            f'Range: {int(df_clean["hour"].min())}-{int(df_clean["hour"].max())} ',
+            f'Range: {int(df_clean["age"].min()):.0f}-{int(df_clean["age"].max()):.0f} years ',
+            'All numeric fields validated'
         ]
     })
     
@@ -543,14 +540,14 @@ COLLISION_TYPE_DICT = {
         height=350
     )
     
-    st.success("✅ All validation checks passed successfully!")
+    st.success("All validation checks passed successfully!")
     
     # ========================================================================
     # FINAL SUMMARY
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("## 📊 Final Dataset Summary")
+    st.markdown("## 📊 Final Cleaned Dataset Summary")
     
     col1, col2, col3, col4 = st.columns(4)
     

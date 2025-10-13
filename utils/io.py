@@ -35,7 +35,7 @@ def get_data_info():
         "source": "data.gouv.fr",
         "dataset_name": "Accidents de vélo en France",
         "original_source": "BAAC - Observatoire National Interministériel de la Sécurité Routière (ONISR)",
-        "period": "2005-2022",
+        "period": "2005-2023",
         "license": "Open License (Licence Ouverte)",
         "url": "https://www.data.gouv.fr/datasets/accidents-de-velo/",
         "description": "Cycling accidents involving at least one injured person requiring medical care, recorded by law enforcement."

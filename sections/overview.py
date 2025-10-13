@@ -22,7 +22,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     
     st.markdown("""
     This section provides a view of cycling accident patterns across France 
-    from 2005 to 2022. Use the sidebar filters to explore specific time periods, departments, 
+    from 2005 to 2023. Use the sidebar filters to explore specific time periods, departments, 
     or severity levels.
     """)
     
@@ -94,10 +94,10 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # ========================================================================
 
     st.markdown("---")
-    st.markdown("### Urban vs Rural: Accident Volume & Severity")
+    st.markdown("## 1. Urban vs Rural: Accident Volume & Severity 🏙️🌾")
 
     st.markdown("""
-    Comparing accident patterns and severity distribution between built-up areas (urban) and open roads (rural).
+    Comparing accident patterns and severity distribution between built-up areas (urban) and  (rural).
     """)
 
     st.info("""
@@ -163,6 +163,11 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             )
             
             st.plotly_chart(fig_comparison, use_container_width=True)
+        st.caption("""
+        **Chart description**: Grouped bar chart comparing accident severity distribution between urban (in built-up areas) 
+        and rural (outside built-up areas) locations. Shows four severity categories (Killed, Hospitalized, Minor injury, Unharmed) 
+        with urban areas in blue and rural areas in orange.
+        """)
                 
         with col3:
             st.markdown("##### 🌾 Rural (Outside Built-up)")
@@ -213,7 +218,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             **Result**: Fewer accidents but proportionally more deadly
             """)
         
-        # Check if any filter is active (ONLY ONCE!)
+        # Check if any filter is active
         filters_active = (
             (year_range is not None and year_range != (df_filtered['year'].min(), df_filtered['year'].max())) or
             (selected_departments is not None and selected_departments != ['All']) or
@@ -273,10 +278,10 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
 
 # Juste AVANT la section carte (ligne ~240 dans ton overview.py)
 
-# Check if location filter is active
+    # Check if location filter is active
     if selected_agglomeration and selected_agglomeration != 'All':
         st.markdown("---")
-        st.markdown("### 🗺️ Geographic Distribution by Department")
+        st.markdown("## 2. Geographic Distribution by Department 🗺️")
         
         st.warning(f"""
         ⚠️ **Geographic map not available with location filter active**
@@ -287,23 +292,14 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         To view the geographic distribution, please set "Location type" filter back to "All".
         """)
     
-    else:
-        # TOUTE LA SECTION CARTE ICI (ton code actuel)
+    # Si pas de filtres d'activé (All partout)
+    else:    
         st.markdown("---")
-        st.markdown("### 🗺️ Geographic Distribution by Department")
+        st.markdown("## 2. Geographic Distribution by Department 🗺️")
         
         st.markdown("""
         Interactive map showing accident density across French departments. 
-        **Hover over departments** to see detailed statistics.
-        """)
-        
-        # ... (ton code de carte complet)
-        st.markdown("---")
-        st.markdown("### 🗺️ Geographic Distribution by Department")
-
-        st.markdown("""
-        Interactive map showing accident density across French departments. 
-        **Hover over departments** to see detailed statistics.
+        Hover over departments to see detailed statistics.
         """)
 
         # Prepare department-level aggregated data
@@ -335,7 +331,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             locations='dep',
             geojson='https://france-geojson.gregoiredavid.fr/repo/departements.geojson',
             featureidkey='properties.code',
-            color='log_accidents',  # ← LOG SCALE !
+            color='log_accidents', 
             hover_name='dep',
             hover_data={
                 'dep': False,
@@ -358,7 +354,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
                 'fatal_rate': 'Fatal Rate (%)',
                 'log_accidents': 'Accidents'
             },
-            title='Cycling Accidents Heatmap by Department (Log Scale)'
+            title='Cycling Accidents Heatmap by Department'
         )
 
         fig_choropleth.update_geos(
@@ -370,13 +366,23 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             height=700,
             margin={"r":0,"t":50,"l":0,"b":0},
             coloraxis_colorbar=dict(
-                title="Accidents<br>(log scale)",
+                title="Accidents<br>",
                 tickvals=[1, 2, 3, 4],
                 ticktext=['10', '100', '1,000', '10,000']
             )
         )
 
         st.plotly_chart(fig_choropleth, use_container_width=True)
+        st.caption("""
+        **Map description**: Choropleth map of France showing cycling accident density by department using logarithmic color scale. 
+        Departments range from light yellow (low accidents) to dark red/black (high accidents). Interactive map allows hovering to see exact statistics for each department.
+        """)
+
+        st.warning("""
+        We used logarithmic color scale to better visualize the wide range of values (from 50 to 13,000+ accidents): 
+        this makes differences visible across all departments, not just Paris. Departments range from light yellow 
+        (low accidents: 50-100) through orange (medium: 500-2,000) to dark red/black (high: 10,000+). """    
+        )
 
         # Calculate if filters are active
         filters_active = (
@@ -416,7 +422,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             - **Ardèche (07)**: 13.6% fatality rate - mountainous terrain, high speeds
             - **Charente (16)**: 13.2% fatality rate - rural roads, less infrastructure
             
-            **The Urban-Rural paradox**:
+            **The Urban-Rural paradox (again)**:
             - Cities = **high volume, low fatality** (many cyclists, slow speeds, better infrastructure)
             - Rural = **low volume, high fatality** (fewer cyclists, fast roads, no bike lanes)
             
@@ -428,7 +434,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("### 👥 Demographics: Who Are the Victims?")
+    st.markdown("## 3. Demographics: Who Are the Victims? 👥")
     
     st.markdown("""
     Understanding the profile of cycling accident victims helps identify vulnerable groups 
@@ -439,7 +445,6 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     
     with col1:
         st.markdown("#### 📊 Age Distribution")
-        
         # Age distribution by gravity
         age_data = df_filtered.groupby(['age_group', 'gravity']).size().reset_index(name='count')
 
@@ -463,7 +468,12 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
             height=500,
         )
         st.plotly_chart(fig_age, use_container_width=True)
-        
+
+        st.caption("""
+        **Heatmap description**: Matrix showing relationship between age groups (columns) and accident severity (rows). 
+        Color intensity represents number of accidents, with darker red indicating higher counts.
+        """)
+                
         
         # Calculate age statistics
         total_by_age = df_filtered.groupby('age_group').agg({
@@ -516,6 +526,11 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         fig_gender.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
         
         st.plotly_chart(fig_gender, use_container_width=True)
+        st.caption("""
+        **Chart description**: Dual faceted bar chart comparing accident severity by gender. Left panel shows male accidents, 
+        right panel shows female accidents. Four severity categories color-coded: green (unharmed), yellow (minor injury), 
+        orange (hospitalized), red (killed).
+        """)
         
         
 
@@ -554,7 +569,7 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # ========================================================================
     
     st.markdown("---")
-    st.markdown("### 📈 Temporal Evolution (2005-2022)")
+    st.markdown("## 4. Temporal Evolution (2005-2023) 📈")
     
     st.markdown("""
     This chart shows how cycling accidents evolved over 18 years, broken down by severity level.
@@ -632,6 +647,10 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
         )
     
     st.plotly_chart(fig_evolution, use_container_width=True)
+    st.caption("""
+    **Chart description**: Stacked area chart showing evolution of cycling accidents from 2005 to 2023, segmented by severity. 
+    Green (unharmed), yellow (minor injury), orange (hospitalized), and red (killed) layers show distribution over time. 
+    """)
     
     # Key insight box - calculate trends
     yearly_detail = df_filtered.groupby('year').size().reset_index(name='total')
@@ -682,34 +701,42 @@ def render(df_filtered, tables, year_range=None, selected_departments=None, sele
     # ========================================================================
     # QUICK INSIGHTS SUMMARY
     # ========================================================================
-    
+
     st.markdown("---")
-    st.markdown("### 💡 Quick Insights")
-    
-    insight1, insight2, insight3 = st.columns(3)
-    
+    st.markdown("### 💡 Key Takeaways from Overview")
+
+    insight1, insight2, insight3, insight4 = st.columns(4)
+
     with insight1:
         st.markdown("""
-        **🕐 Temporal Pattern**
-        
-        Accidents showed a **gradual decline** from 2005 to 2022, with major drops in 2017 (new laws) 
-        and 2020 (COVID-19 pandemic).
-        """)
-    
-    with insight2:
-        st.markdown("""
-        **🗺️ Geographic Concentration**
-        
-        Urban departments (especially Paris region) account for the **majority of accidents**, 
-        reflecting higher cycling activity in cities.
-        """)
-    
-    with insight3:
-        st.markdown("""
-        **⚠️ Urban-Rural Paradox**
+        **🏙️🌾 Urban-Rural Paradox**
         
         Cities have **more accidents but lower fatality rates** due to lower speeds and better infrastructure. 
         Rural areas are far more deadly.
+        """)
+
+    with insight2:
+        st.markdown("""
+        **🗺️ Geographic Patterns**
+        
+        Urban departments (especially Paris region) account for the **majority of accidents**, 
+        due to higher cycling volumes and dense traffic
+        """)
+
+    with insight3:
+        st.markdown("""
+        **👥 Vulnerable Groups**
+        
+        **Middle-age adults** have the most accidents (daily commuters), while **seniors** face 
+        the highest fatality rates. **Men** are over-represented in all severity categories.
+        """)
+
+    with insight4:
+        st.markdown("""
+        **📈 Temporal Evolution**
+        
+        Accidents showed a **gradual decline** from 2005 to 2019, with major drops in 2017 (new laws) 
+        and 2020 (COVID-19 lockdowns).
         """)
     
     # ========================================================================
