@@ -130,9 +130,9 @@ This app is ready for **Streamlit Community Cloud** deployment.
 
 ## 📹 Demo Video
 
-A 2-4 minute walkthrough demonstrating the dashboard's narrative and interactive features.
+A 5 minutes walkthrough demonstrating the dashboard's narrative and interactive features.
 
-**Video link**: *(to be added)*
+**Video link**: https://youtu.be/FNrXl76EINc
 
 ---
 
