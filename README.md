@@ -20,9 +20,22 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 - How effective is cycling infrastructure?
 
 ---
+## 📹 Demo Video
+A 5 minutes walkthrough demonstrating the dashboard's narrative and interactive features.
+**Video link**: https://youtu.be/FNrXl76EINc
 
-## 🚀 Installation and Run Instruction
+---
 
+## 🚀 Quick Start
+
+### Option 1: Use the deployed app (Recommended)
+The dashboard is already deployed and ready to use:  
+**Deployed URL**: https://france-cycling-accidents.streamlit.app/
+
+No installation required! Just click and explore.
+
+
+### Option 2: Run Locally :
 **Prerequisites :**
 - Python 3.8+
 - pip
@@ -30,11 +43,6 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 **Setup Instructions :**
 
 **1. Extract the ZIP file**
-```bash
-unzip StreamlitApp25_20000_POLLART_XXX.zip
-cd StreamlitApp25_20000_POLLART_XXX
-```
-
 **2. Install dependencies**
 ```bash
 pip install -r requirements.txt
@@ -118,21 +126,6 @@ This dual strategy ensures both immediate reproducibility and adherence to best 
 - **Interactive map**: Department-level heatmap
 - **Performance optimized**: `@st.cache_data` on all data operations
 - **Responsive design**: Works on desktop and tablet
-
----
-
-## 🚀 Deployment
-
-This app is ready for **Streamlit Community Cloud** deployment.
-**Deployed URL**: *(to be added)*
-
----
-
-## 📹 Demo Video
-
-A 5 minutes walkthrough demonstrating the dashboard's narrative and interactive features.
-
-**Video link**: https://youtu.be/FNrXl76EINc
 
 ---
 
