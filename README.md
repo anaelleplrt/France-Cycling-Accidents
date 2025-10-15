@@ -141,7 +141,7 @@ Full data quality documentation available in the dashboard's **Data Quality** se
 
 ## 🎓 Academic Context
 
-**Course**: Data Storytelling  
+**Course**: Data Visualization  
 **Hashtag**: #EFREIDataStories2025  
 **Professor**: Mano Joseph Mathew  
 **Institution**: EFREI Paris  
