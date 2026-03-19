@@ -1,4 +1,4 @@
-# 🚴 Cycling Safety in France (2005-2023)
+# Cycling Safety in France (2005-2023)
 
 Interactive Streamlit dashboard analyzing 18 years of bicycle accident data from the French National Road Accident Database (BAAC).
 
@@ -9,7 +9,7 @@ Interactive Streamlit dashboard analyzing 18 years of bicycle accident data from
 
 ---
 
-## 📊 About This Project
+## About This Project
 
 This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify patterns, risk factors, and provide evidence-based safety recommendations for policymakers and urban planners.
 
@@ -20,13 +20,13 @@ This dashboard analyzes **79,965 cycling accidents** (2005-2023) to identify pat
 - How effective is cycling infrastructure?
 
 ---
-## 📹 Demo Video
+## Demo Video
 A 5 minutes walkthrough demonstrating the dashboard's narrative and interactive features.
 **Video link**: https://youtu.be/FNrXl76EINc
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: Use the deployed app (Recommended)
 The dashboard is already deployed and ready to use:  
@@ -57,7 +57,7 @@ The app will open at `http://localhost:8501`
 
 ---
 
-### 📁 Project Structure
+### Project Structure
 ```text
 ├── app.py                    # Main application
 ├── download_data.py          # Script to download dataset from data.gouv.fr
@@ -79,7 +79,7 @@ The app will open at `http://localhost:8501`
 
 ---
 
-## 📦 Dependencies
+## Dependencies
 streamlit>=1.33.0  
 pandas>=2.0.0  
 numpy>=1.24.0  
@@ -90,7 +90,7 @@ All required libraries are listed in `requirements.txt`.
 
 ---
 
-## 📊 Data Source
+## Data Source
 
 **Dataset**: Base BAAC (French National Road Accident Database)  
 **Provider**: ONISR (Observatoire National Interministériel de la Sécurité Routière)  
@@ -104,7 +104,7 @@ Each record represents one person involved in a cycling accident requiring medic
 
 ---
 
-## 💾 Data Availability
+## Data Availability
 
 **Dataset included**: The CSV file `data/accidentsVelofull.csv` is directly included in the repository for immediate use.
 
@@ -118,7 +118,7 @@ This dual strategy ensures both immediate reproducibility and adherence to best 
 
 ---
 
-## 🎛️ Features
+## Features
 
 - **Interactive filters**: Year range, departments, severity, location type
 - **5 dashboard sections**: Introduction, Data Quality, Overview, Deep Dive Analysis, Conclusions
@@ -129,7 +129,7 @@ This dual strategy ensures both immediate reproducibility and adherence to best 
 
 ---
 
-## ⚠️ Limitations
+## Limitations
 
 - Only includes reported accidents (minor unreported incidents not captured)
 - Some missing values in optional fields
@@ -149,7 +149,7 @@ Full data quality documentation available in the dashboard's **Data Quality** se
 
 ---
 
-## 📝 License
+## License
 
 **Data**: Open License (Licence Ouverte) - ONISR/data.gouv.fr  
 **Code**: Academic project for EFREI course
