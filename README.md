@@ -43,6 +43,7 @@ No installation required! Just click and explore.
 **Setup Instructions :**
 
 **1. Extract the ZIP file**
+
 **2. Install dependencies**
 ```bash
 pip install -r requirements.txt
